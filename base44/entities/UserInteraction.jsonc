@@ -1,0 +1,20 @@
+{
+  "name": "UserInteraction",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "going",
+        "saved"
+      ]
+    }
+  },
+  "required": [
+    "event_id",
+    "type"
+  ]
+}

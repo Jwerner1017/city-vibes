@@ -1,0 +1,32 @@
+{
+  "name": "Donation",
+  "type": "object",
+  "properties": {
+    "amount": {
+      "type": "number"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "one_time",
+        "monthly"
+      ]
+    },
+    "tier_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "amount",
+    "type"
+  ]
+}

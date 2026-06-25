@@ -1,0 +1,125 @@
+{
+  "name": "Event",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "date_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "location_name": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "address": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "festival",
+        "outdoor",
+        "sports",
+        "arts",
+        "music",
+        "food",
+        "holiday",
+        "community",
+        "education",
+        "attraction",
+        "trick_or_treat",
+        "fireworks",
+        "santa",
+        "easter",
+        "parade",
+        "other"
+      ]
+    },
+    "holiday": {
+      "type": "string",
+      "enum": [
+        "none",
+        "july_4th",
+        "halloween",
+        "christmas",
+        "easter",
+        "st_patricks",
+        "thanksgiving",
+        "new_years",
+        "valentines",
+        "memorial_day",
+        "labor_day"
+      ]
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "is_free": {
+      "type": "boolean",
+      "default": true
+    },
+    "price_info": {
+      "type": "string"
+    },
+    "age_min": {
+      "type": "number",
+      "default": 0
+    },
+    "age_max": {
+      "type": "number",
+      "default": 18
+    },
+    "is_permanent": {
+      "type": "boolean",
+      "default": false
+    },
+    "website_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "going_count": {
+      "type": "number",
+      "default": 0
+    },
+    "save_count": {
+      "type": "number",
+      "default": 0
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "date_start",
+    "latitude",
+    "longitude",
+    "category"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "TreatStop",
+  "type": "object",
+  "properties": {
+    "address": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "candy_type": {
+      "type": "string"
+    },
+    "decorations": {
+      "type": "string",
+      "enum": [
+        "none",
+        "basic",
+        "moderate",
+        "all_out",
+        "haunted"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "year": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "address",
+    "latitude",
+    "longitude"
+  ]
+}
