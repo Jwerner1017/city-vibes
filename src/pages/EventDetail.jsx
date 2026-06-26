@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { CATEGORY_CONFIG, HOLIDAY_CONFIG } from "@/lib/constants";
-import { ArrowLeft, MapPin, Clock, Users, Heart, Share2, ExternalLink, Calendar } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Users, Heart, Share2, ExternalLink, Calendar, CalendarPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
@@ -16,6 +16,10 @@ export default function EventDetail() {
   const [loading, setLoading] = useState(true);
   const [interactions, setInteractions] = useState({ going: false, saved: false });
   const [user, setUser] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const [gcalConnected, setGcalConnected] = useState(null); // null=unknown, true/false
+
+  const CONNECTOR_ID = "6a3ed7ba374b6378eae25755";
 
   useEffect(() => {
     const load = async () => {
@@ -56,6 +60,38 @@ export default function EventDetail() {
         setEvent(prev => ({ ...prev, going_count: (prev.going_count || 0) + 1 }));
       }
     }
+  };
+
+  const handleSyncToCalendar = async () => {
+    if (!user) {
+      toast({ title: "Sign in to sync events" });
+      return;
+    }
+    if (gcalConnected === false) {
+      // Connect Google Calendar first
+      const url = await base44.connectors.connectAppUser(CONNECTOR_ID);
+      const popup = window.open(url, "_blank");
+      const timer = setInterval(() => {
+        if (!popup || popup.closed) {
+          clearInterval(timer);
+          setGcalConnected(null); // reset so next click retries
+        }
+      }, 500);
+      return;
+    }
+    setSyncing(true);
+    try {
+      await base44.functions.invoke("syncToGoogleCalendar", { event });
+      toast({ title: "Added to Google Calendar! 🎉" });
+    } catch (err) {
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
+        setGcalConnected(false);
+        toast({ title: "Connect Google Calendar first", description: "Tap the button again to connect." });
+      } else {
+        toast({ title: "Failed to add to calendar", description: err?.response?.data?.error || err.message, variant: "destructive" });
+      }
+    }
+    setSyncing(false);
   };
 
   const handleShare = async () => {
@@ -224,6 +260,17 @@ export default function EventDetail() {
             <Heart className={`w-5 h-5 ${interactions.saved ? "fill-current" : ""}`} />
           </Button>
         </div>
+
+        {/* Google Calendar sync */}
+        <Button
+          onClick={handleSyncToCalendar}
+          disabled={syncing}
+          variant="outline"
+          className="w-full mt-3 rounded-full h-11 gap-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+        >
+          <CalendarPlus className="w-4 h-4" />
+          {syncing ? "Adding..." : gcalConnected === false ? "Connect Google Calendar" : "Add to Google Calendar"}
+        </Button>
       </div>
     </div>
   );
