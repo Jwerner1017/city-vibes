@@ -6,14 +6,26 @@ import FilterBar from "@/components/FilterBar";
 import BottomNav from "@/components/BottomNav";
 import CreateEventFAB from "@/components/CreateEventFAB";
 import RecommendedEvents from "@/components/RecommendedEvents";
-import { MapPin, X } from "lucide-react";
+import { MapPin, Map, CalendarDays, List, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import moment from "moment";
+
+const VIEW_TABS = [
+  { id: "map", icon: Map, label: "Map" },
+  { id: "calendar", icon: CalendarDays, label: "Calendar" },
+  { id: "list", icon: List, label: "List" },
+];
 
 export default function Home() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({});
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [viewMode, setViewMode] = useState("map");
+
+  // Calendar state
+  const [currentMonth, setCurrentMonth] = useState(moment());
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const loadEvents = useCallback(async () => {
     setLoading(true);
@@ -36,15 +48,23 @@ export default function Home() {
     setLoading(false);
   }, [filters]);
 
-  useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
+  useEffect(() => { loadEvents(); }, [loadEvents]);
+
+  // Calendar helpers
+  const daysInMonth = currentMonth.daysInMonth();
+  const startDay = moment(currentMonth).startOf("month").day();
+  const today = moment().format("YYYY-MM-DD");
+  const getEventsForDate = (dateStr) => events.filter(e => moment(e.date_start).format("YYYY-MM-DD") === dateStr);
+  const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
+  const upcomingEvents = events
+    .filter(e => moment(e.date_start).isSameOrAfter(moment(), "day"))
+    .sort((a, b) => new Date(a.date_start) - new Date(b.date_start));
 
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <div className="bg-white/95 backdrop-blur-lg border-b border-border z-20 relative">
-        <div className="flex items-center justify-between px-4 pt-3 pb-1">
+        <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <div>
             <h1 className="font-heading font-black text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Local Vibes
@@ -54,50 +74,166 @@ export default function Home() {
               <span>Louisville, KY</span>
             </div>
           </div>
+
+          {/* 3-way toggle */}
+          <div className="flex items-center bg-muted rounded-full p-0.5 gap-0.5">
+            {VIEW_TABS.map(({ id, icon: Icon, label }) => (
+              <button
+                key={id}
+                onClick={() => setViewMode(id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  viewMode === id ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
         </div>
         <FilterBar filters={filters} onFiltersChange={setFilters} />
       </div>
 
-      {/* Map */}
-      <div className="flex-1 relative">
+      {/* Content area */}
+      <div className="flex-1 relative overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
           </div>
         ) : (
-          <EventMap
-            events={events}
-            selectedId={selectedEvent?.id}
-            onEventTap={setSelectedEvent}
-          />
-        )}
+          <>
+            {/* MAP VIEW */}
+            {viewMode === "map" && (
+              <div className="absolute inset-0">
+                <EventMap
+                  events={events}
+                  selectedId={selectedEvent?.id}
+                  onEventTap={setSelectedEvent}
+                />
 
-        {/* Selected event card */}
-        <AnimatePresence>
-          {selectedEvent && (
-            <motion.div
-              initial={{ y: 200, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 200, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute bottom-20 left-4 right-4 z-30"
-            >
-              <div className="relative">
-                <button
-                  onClick={() => setSelectedEvent(null)}
-                  className="absolute -top-2 -right-2 z-10 w-7 h-7 bg-white rounded-full shadow-md flex items-center justify-center"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-                <EventCard event={selectedEvent} />
+                {/* Selected event card */}
+                <AnimatePresence>
+                  {selectedEvent && (
+                    <motion.div
+                      initial={{ y: 200, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 200, opacity: 0 }}
+                      transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                      className="absolute bottom-20 left-4 right-4 z-30"
+                    >
+                      <div className="relative">
+                        <button
+                          onClick={() => setSelectedEvent(null)}
+                          className="absolute -top-2 -right-2 z-10 w-7 h-7 bg-white rounded-full shadow-md flex items-center justify-center"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        <EventCard event={selectedEvent} />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Recommended overlay */}
+                {!selectedEvent && (
+                  <RecommendedEvents allEvents={events} onEventTap={setSelectedEvent} />
+                )}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
 
-        {/* Recommended for You */}
-        {!selectedEvent && (
-          <RecommendedEvents allEvents={events} onEventTap={setSelectedEvent} />
+            {/* CALENDAR VIEW */}
+            {viewMode === "calendar" && (
+              <div className="h-full overflow-y-auto pb-24 px-4 pt-4">
+                <div className="flex items-center justify-between mb-4">
+                  <button onClick={() => setCurrentMonth(moment(currentMonth).subtract(1, "month"))} className="p-2 rounded-full hover:bg-muted">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <h2 className="font-heading font-bold text-lg">{currentMonth.format("MMMM YYYY")}</h2>
+                  <button onClick={() => setCurrentMonth(moment(currentMonth).add(1, "month"))} className="p-2 rounded-full hover:bg-muted">
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {["S","M","T","W","T","F","S"].map((d, i) => (
+                    <div key={i} className="text-center text-xs font-semibold text-muted-foreground py-1">{d}</div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: startDay }).map((_, i) => <div key={`empty-${i}`} />)}
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const day = i + 1;
+                    const dateStr = currentMonth.format("YYYY-MM-") + String(day).padStart(2, "0");
+                    const dayEvents = getEventsForDate(dateStr);
+                    const isToday = dateStr === today;
+                    const isSelected = dateStr === selectedDate;
+                    return (
+                      <button
+                        key={day}
+                        onClick={() => setSelectedDate(dateStr === selectedDate ? null : dateStr)}
+                        className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-0.5 text-sm transition-all ${
+                          isSelected ? "bg-primary text-white shadow-md" : isToday ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted"
+                        }`}
+                      >
+                        <span className={`font-medium ${isSelected ? "font-bold" : ""}`}>{day}</span>
+                        {dayEvents.length > 0 && (
+                          <div className="flex gap-0.5">
+                            {dayEvents.slice(0, 3).map((e, idx) => (
+                              <span key={idx} className="w-1.5 h-1.5 rounded-full" style={{
+                                backgroundColor: isSelected ? "white" : (
+                                  idx === 0 ? "hsl(var(--primary))" : idx === 1 ? "hsl(var(--secondary))" : "hsl(var(--accent))"
+                                )
+                              }} />
+                            ))}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedDate && (
+                  <div className="mt-6">
+                    <h3 className="font-heading font-bold text-sm mb-3">
+                      {moment(selectedDate).format("dddd, MMMM D")}
+                      <span className="text-muted-foreground font-normal ml-2">{selectedDateEvents.length} event{selectedDateEvents.length !== 1 ? "s" : ""}</span>
+                    </h3>
+                    {selectedDateEvents.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <CalendarDays className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                        <p className="text-sm">No events on this day</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {selectedDateEvents.map(event => <EventCard key={event.id} event={event} compact />)}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* LIST VIEW */}
+            {viewMode === "list" && (
+              <div className="h-full overflow-y-auto pb-24 px-4 pt-4">
+                <h3 className="font-heading font-bold text-sm mb-3">
+                  Upcoming Events
+                  <span className="text-muted-foreground font-normal ml-2">{upcomingEvents.length}</span>
+                </h3>
+                {upcomingEvents.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <CalendarDays className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p>No upcoming events</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {upcomingEvents.map(event => <EventCard key={event.id} event={event} compact />)}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 
