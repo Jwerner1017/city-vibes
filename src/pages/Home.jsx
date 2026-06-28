@@ -5,6 +5,7 @@ import EventCard from "@/components/EventCard";
 import FilterBar from "@/components/FilterBar";
 import BottomNav from "@/components/BottomNav";
 import CreateEventFAB from "@/components/CreateEventFAB";
+import RecommendedEvents from "@/components/RecommendedEvents";
 import { MapPin, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -93,6 +94,11 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Recommended for You */}
+        {!selectedEvent && (
+          <RecommendedEvents allEvents={events} onEventTap={setSelectedEvent} />
+        )}
       </div>
 
       <CreateEventFAB />
