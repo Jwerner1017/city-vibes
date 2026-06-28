@@ -18,6 +18,7 @@ import Saved from './pages/Saved';
 import Profile from './pages/Profile';
 import Donate from './pages/Donate';
 import Moderation from './pages/Moderation';
+import OrganizerDashboard from './pages/OrganizerDashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -55,6 +56,7 @@ const AuthenticatedApp = () => {
       <Route path="/profile" element={<Profile />} />
       <Route path="/donate" element={<Donate />} />
       <Route path="/moderation" element={<Moderation />} />
+      <Route path="/organizer" element={<OrganizerDashboard />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
