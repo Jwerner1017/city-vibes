@@ -6,9 +6,11 @@ import FilterBar from "@/components/FilterBar";
 import BottomNav from "@/components/BottomNav";
 import CreateEventFAB from "@/components/CreateEventFAB";
 import RecommendedEvents from "@/components/RecommendedEvents";
-import { MapPin, Map, CalendarDays, List, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Map, CalendarDays, List, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import moment from "moment";
+import CitySelector from "@/components/CitySelector";
+import { useCity } from "@/lib/CityContext";
 
 const VIEW_TABS = [
   { id: "map", icon: Map, label: "Map" },
@@ -17,6 +19,7 @@ const VIEW_TABS = [
 ];
 
 export default function Home() {
+  const { selectedCity } = useCity();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({});
@@ -69,10 +72,7 @@ export default function Home() {
             <h1 className="font-heading font-black text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Local Vibes
             </h1>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="w-3 h-3" />
-              <span>Louisville, KY</span>
-            </div>
+            <CitySelector />
           </div>
 
           {/* 3-way toggle */}
@@ -109,6 +109,8 @@ export default function Home() {
                   events={events}
                   selectedId={selectedEvent?.id}
                   onEventTap={setSelectedEvent}
+                  cityCenter={selectedCity ? [selectedCity.latitude, selectedCity.longitude] : null}
+                  cityZoom={selectedCity?.zoom || 11}
                 />
 
                 {/* Selected event card */}

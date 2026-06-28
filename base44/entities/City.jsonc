@@ -1,0 +1,39 @@
+{
+  "name": "City",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "state_code": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "zoom": {
+      "type": "number",
+      "default": 11
+    },
+    "ranking": {
+      "type": "number"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "state",
+    "state_code",
+    "latitude",
+    "longitude"
+  ]
+}

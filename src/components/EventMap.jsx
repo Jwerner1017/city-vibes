@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { LOUISVILLE_CENTER, DEFAULT_ZOOM, CATEGORY_CONFIG } from "@/lib/constants";
+import { CATEGORY_CONFIG } from "@/lib/constants";
 
-export default function EventMap({ events, onEventTap, selectedId }) {
+export default function EventMap({ events, onEventTap, selectedId, cityCenter, cityZoom }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
@@ -13,8 +13,8 @@ export default function EventMap({ events, onEventTap, selectedId }) {
     if (!L) return;
 
     const map = L.map(mapRef.current, {
-      center: LOUISVILLE_CENTER,
-      zoom: DEFAULT_ZOOM,
+      center: cityCenter || [38.2527, -85.7585],
+      zoom: cityZoom || 11,
       zoomControl: false,
     });
 
@@ -73,6 +73,12 @@ export default function EventMap({ events, onEventTap, selectedId }) {
       markersRef.current.push(marker);
     });
   }, [events, selectedId, mapReady, onEventTap]);
+
+  // Fly to city when it changes
+  useEffect(() => {
+    if (!mapInstance.current || !mapReady || !cityCenter) return;
+    mapInstance.current.flyTo(cityCenter, cityZoom || 11, { animate: true, duration: 1.2 });
+  }, [cityCenter, cityZoom, mapReady]);
 
   return <div ref={mapRef} className="w-full h-full" />;
 }
