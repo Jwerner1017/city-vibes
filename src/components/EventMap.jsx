@@ -12,8 +12,11 @@ export default function EventMap({ events, onEventTap, selectedId, cityCenter, c
     const L = window.L;
     if (!L) return;
 
+    const safeCenter = (Array.isArray(cityCenter) && isFinite(cityCenter[0]) && isFinite(cityCenter[1]))
+      ? cityCenter
+      : [38.2527, -85.7585];
     const map = L.map(mapRef.current, {
-      center: cityCenter || [38.2527, -85.7585],
+      center: safeCenter,
       zoom: cityZoom || 11,
       zoomControl: false,
     });
@@ -75,10 +78,14 @@ export default function EventMap({ events, onEventTap, selectedId, cityCenter, c
   }, [events, selectedId, mapReady, onEventTap]);
 
   // Fly to city when it changes
+  const prevCityRef = useRef(null);
   useEffect(() => {
-    if (!mapInstance.current || !mapReady || !cityCenter) return;
+    if (!mapInstance.current || !mapReady || !Array.isArray(cityCenter)) return;
     const [lat, lng] = cityCenter;
-    if (!isFinite(lat) || !isFinite(lng)) return;
+    if (typeof lat !== "number" || typeof lng !== "number" || !isFinite(lat) || !isFinite(lng)) return;
+    const key = `${lat},${lng}`;
+    if (prevCityRef.current === key) return;
+    prevCityRef.current = key;
     mapInstance.current.flyTo([lat, lng], cityZoom || 11, { animate: true, duration: 1.2 });
   }, [cityCenter, cityZoom, mapReady]);
 
