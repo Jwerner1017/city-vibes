@@ -14,6 +14,7 @@ export default function CreateEvent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState([]);
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -70,10 +71,13 @@ export default function CreateEvent() {
 
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
     for (const file of files) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setPhotos(prev => [...prev, file_url]);
     }
+    setUploading(false);
   };
 
   const handleSubmit = async () => {
@@ -226,11 +230,20 @@ export default function CreateEvent() {
                 </button>
               </div>
             ))}
-            <label className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:bg-muted transition-colors">
-              <Camera className="w-5 h-5 text-muted-foreground" />
-              <span className="text-[10px] text-muted-foreground mt-1">Add</span>
-              <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
+            <label className={`w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:bg-muted transition-colors ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
+              {uploading ? (
+                <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Camera className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground mt-1">Add Photo</span>
+                </>
+              )}
+              <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" disabled={uploading} />
             </label>
+            {photos.length === 0 && !uploading && (
+              <p className="text-[10px] text-muted-foreground self-end pb-1">Tap to add up to 10 photos</p>
+            )}
           </div>
         </div>
 

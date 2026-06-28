@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import EventReviews from "@/components/EventReviews";
+import PhotoGallery from "@/components/PhotoGallery";
 import moment from "moment";
 
 export default function EventDetail() {
@@ -134,29 +135,29 @@ export default function EventDetail() {
 
   const cat = CATEGORY_CONFIG[event.category] || CATEGORY_CONFIG.other;
   const holiday = event.holiday && event.holiday !== "none" ? HOLIDAY_CONFIG[event.holiday] : null;
-  const photo = event.photos?.[0];
+  const hasPhotos = event.photos && event.photos.length > 0;
 
   return (
     <div className="min-h-screen bg-background pb-6">
-      {/* Hero */}
-      <div className="relative h-64">
-        {photo ? (
-          <img src={photo} alt={event.title} className="w-full h-full object-cover" />
+      {/* Hero / Gallery */}
+      <div className="relative">
+        {hasPhotos ? (
+          <PhotoGallery photos={event.photos} title={event.title} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-7xl" style={{ backgroundColor: cat.color + "20" }}>
+          <div className="h-64 w-full flex items-center justify-center text-7xl" style={{ backgroundColor: cat.color + "20" }}>
             {cat.emoji}
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md"
+          className="absolute top-4 left-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md z-10"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <button
           onClick={handleShare}
-          className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md"
+          className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md z-10"
         >
           <Share2 className="w-5 h-5" />
         </button>
