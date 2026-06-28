@@ -1,0 +1,35 @@
+{
+  "name": "EventReview",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "tips": {
+      "type": "string"
+    },
+    "age_of_kids": {
+      "type": "string"
+    },
+    "would_return": {
+      "type": "boolean",
+      "default": true
+    },
+    "reviewer_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_id",
+    "rating"
+  ]
+}

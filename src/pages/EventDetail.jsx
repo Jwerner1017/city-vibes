@@ -6,6 +6,7 @@ import { ArrowLeft, MapPin, Clock, Users, Heart, Share2, ExternalLink, Calendar,
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import EventReviews from "@/components/EventReviews";
 import moment from "moment";
 
 export default function EventDetail() {
@@ -281,6 +282,9 @@ export default function EventDetail() {
           <CalendarPlus className="w-4 h-4" />
           {syncing ? "Adding..." : gcalConnected === false ? "Connect Google Calendar" : "Add to Google Calendar"}
         </Button>
+
+        {/* Reviews */}
+        <EventReviews eventId={id} user={user} />
 
         {/* Social sharing */}
         <div className="mt-4 pt-4 border-t border-border">
