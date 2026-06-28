@@ -109,7 +109,7 @@ export default function Home() {
                   events={events}
                   selectedId={selectedEvent?.id}
                   onEventTap={setSelectedEvent}
-                  cityCenter={selectedCity ? [selectedCity.latitude, selectedCity.longitude] : null}
+                  cityCenter={(selectedCity && isFinite(selectedCity.latitude) && isFinite(selectedCity.longitude)) ? [selectedCity.latitude, selectedCity.longitude] : null}
                   cityZoom={selectedCity?.zoom || 11}
                 />
 

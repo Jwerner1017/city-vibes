@@ -21,7 +21,18 @@ export function CityProvider({ children }) {
   useEffect(() => {
     const saved = localStorage.getItem("localvibes_city");
     if (saved) {
-      try { setSelectedCityState(JSON.parse(saved)); } catch {}
+      try {
+        const parsed = JSON.parse(saved);
+        const lat = parseFloat(parsed.latitude);
+        const lng = parseFloat(parsed.longitude);
+        if (isFinite(lat) && isFinite(lng)) {
+          setSelectedCityState({ ...parsed, latitude: lat, longitude: lng });
+        } else {
+          localStorage.removeItem("localvibes_city");
+        }
+      } catch {
+        localStorage.removeItem("localvibes_city");
+      }
     }
     loadCities();
   }, []);
