@@ -12,7 +12,7 @@ export default function EventMap({ events, onEventTap, selectedId, cityCenter, c
     const L = window.L;
     if (!L) return;
 
-    const safeCenter = (Array.isArray(cityCenter) && isFinite(cityCenter[0]) && isFinite(cityCenter[1]))
+    const safeCenter = (Array.isArray(cityCenter) && cityCenter[0] && cityCenter[1] && !isNaN(cityCenter[0]) && !isNaN(cityCenter[1]) && isFinite(cityCenter[0]) && isFinite(cityCenter[1]))
       ? cityCenter
       : [38.2527, -85.7585];
     const map = L.map(mapRef.current, {
@@ -82,11 +82,15 @@ export default function EventMap({ events, onEventTap, selectedId, cityCenter, c
   useEffect(() => {
     if (!mapInstance.current || !mapReady || !Array.isArray(cityCenter)) return;
     const [lat, lng] = cityCenter;
-    if (typeof lat !== "number" || typeof lng !== "number" || !isFinite(lat) || !isFinite(lng)) return;
+    if (!lat || !lng || isNaN(lat) || isNaN(lng) || !isFinite(lat) || !isFinite(lng)) return;
     const key = `${lat},${lng}`;
     if (prevCityRef.current === key) return;
     prevCityRef.current = key;
-    mapInstance.current.flyTo([lat, lng], cityZoom || 11, { animate: true, duration: 1.2 });
+    try {
+      mapInstance.current.flyTo([lat, lng], cityZoom || 11, { animate: true, duration: 1.2 });
+    } catch (e) {
+      console.warn("flyTo failed:", e);
+    }
   }, [cityCenter, cityZoom, mapReady]);
 
   return <div ref={mapRef} className="w-full h-full" />;
