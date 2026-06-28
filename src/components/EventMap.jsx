@@ -77,7 +77,9 @@ export default function EventMap({ events, onEventTap, selectedId, cityCenter, c
   // Fly to city when it changes
   useEffect(() => {
     if (!mapInstance.current || !mapReady || !cityCenter) return;
-    mapInstance.current.flyTo(cityCenter, cityZoom || 11, { animate: true, duration: 1.2 });
+    const [lat, lng] = cityCenter;
+    if (!isFinite(lat) || !isFinite(lng)) return;
+    mapInstance.current.flyTo([lat, lng], cityZoom || 11, { animate: true, duration: 1.2 });
   }, [cityCenter, cityZoom, mapReady]);
 
   return <div ref={mapRef} className="w-full h-full" />;
