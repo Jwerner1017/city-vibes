@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import BottomNav from "@/components/BottomNav";
-import { User, Heart, Shield, LogOut, ChevronRight, Star, BarChart3 } from "lucide-react";
+import { User, Heart, Shield, LogOut, ChevronRight, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import UserBadges, { computeBadges } from "@/components/UserBadges";
 
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [donations, setDonations] = useState([]);
+  const [myEvents, setMyEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,8 +17,12 @@ export default function Profile() {
       try {
         const me = await base44.auth.me();
         setUser(me);
-        const d = await base44.entities.Donation.filter({ status: "completed" });
+        const [d, evs] = await Promise.all([
+          base44.entities.Donation.filter({ status: "completed" }),
+          base44.entities.Event.filter({ created_by_id: me.id }),
+        ]);
         setDonations(d);
+        setMyEvents(evs);
       } catch {}
       setLoading(false);
     };
@@ -28,7 +33,11 @@ export default function Profile() {
     await base44.auth.logout("/");
   };
 
-  const isSupporter = donations.length > 0;
+  const badges = computeBadges({
+    donationCount: donations.length,
+    eventCount: myEvents.length,
+    role: user?.role,
+  });
 
   if (loading) {
     return (
@@ -45,21 +54,54 @@ export default function Profile() {
           <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
             <User className="w-8 h-8 text-white" />
           </div>
-          <div>
-            <h1 className="font-heading font-black text-xl text-white flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <h1 className="font-heading font-black text-xl text-white">
               {user?.full_name || "Local Viber"}
-              {isSupporter && (
-                <Badge className="bg-yellow-400 text-yellow-900 border-0 text-[10px]">
-                  <Star className="w-3 h-3 mr-0.5 fill-current" /> Supporter
-                </Badge>
-              )}
             </h1>
-            <p className="text-white/70 text-xs">{user?.email}</p>
+            <p className="text-white/70 text-xs mb-1.5">{user?.email}</p>
+            <UserBadges badges={badges} size="sm" />
           </div>
         </div>
       </div>
 
       <div className="px-4 -mt-6 space-y-3">
+        {/* Stats + Badge Showcase */}
+        <div className="bg-white rounded-2xl border border-border p-4 shadow-sm">
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="bg-muted/50 rounded-xl p-3 text-center">
+              <p className="font-heading font-black text-2xl text-primary">{myEvents.length}</p>
+              <p className="text-xs text-muted-foreground font-medium">Events Created</p>
+            </div>
+            <div className="bg-muted/50 rounded-xl p-3 text-center">
+              <p className="font-heading font-black text-2xl text-secondary">{donations.length}</p>
+              <p className="text-xs text-muted-foreground font-medium">Donations Made</p>
+            </div>
+          </div>
+          {badges.length > 0 ? (
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Your Badges</p>
+              <div className="flex flex-wrap gap-2">
+                {badges.map(badge => {
+                  const Icon = badge.icon;
+                  return (
+                    <div key={badge.id} className="flex flex-col items-center gap-1 p-3 rounded-xl bg-muted/40 flex-1 min-w-[80px]">
+                      <div className={`w-10 h-10 rounded-full ${badge.bg} flex items-center justify-center shadow-sm`}>
+                        <Icon className={`w-5 h-5 ${badge.text}`} />
+                      </div>
+                      <span className="text-[10px] font-bold text-foreground text-center leading-tight">{badge.label}</span>
+                      <span className="text-[9px] text-muted-foreground text-center leading-tight">{badge.description}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-2">
+              <p className="text-xs text-muted-foreground">Create events or donate to earn badges! 🏅</p>
+            </div>
+          )}
+        </div>
+
         {/* Support Local Vibes */}
         <Link to="/donate" className="block">
           <div className="bg-gradient-to-r from-orange-400 to-orange-600 rounded-2xl p-4 text-white shadow-lg shadow-orange-500/20">

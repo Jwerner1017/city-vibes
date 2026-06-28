@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import EventReviews from "@/components/EventReviews";
 import PhotoGallery from "@/components/PhotoGallery";
+import UserBadges, { computeBadges } from "@/components/UserBadges";
 import moment from "moment";
 
 export default function EventDetail() {
@@ -20,6 +21,7 @@ export default function EventDetail() {
   const [user, setUser] = useState(null);
   const [syncing, setSyncing] = useState(false);
   const [gcalConnected, setGcalConnected] = useState(null); // null=unknown, true/false
+  const [organizerBadges, setOrganizerBadges] = useState([]);
 
   const CONNECTOR_ID = "6a3ed7ba374b6378eae25755";
 
@@ -37,6 +39,16 @@ export default function EventDetail() {
           saved: userInteractions.some(i => i.type === "saved"),
         });
       } catch {}
+      // Load organizer badges
+      if (ev?.created_by_id) {
+        try {
+          const [orgDonations, orgEvents] = await Promise.all([
+            base44.entities.Donation.filter({ created_by_id: ev.created_by_id, status: "completed" }),
+            base44.entities.Event.filter({ created_by_id: ev.created_by_id }),
+          ]);
+          setOrganizerBadges(computeBadges({ donationCount: orgDonations.length, eventCount: orgEvents.length }));
+        } catch {}
+      }
     };
     load();
   }, [id]);
@@ -182,6 +194,13 @@ export default function EventDetail() {
             )}
           </div>
           <h1 className="font-heading font-black text-xl leading-tight">{event.title}</h1>
+
+          {organizerBadges.length > 0 && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground font-medium">Organizer:</span>
+              <UserBadges badges={organizerBadges} size="sm" />
+            </div>
+          )}
 
           <div className="mt-4 space-y-3">
             <div className="flex items-start gap-3">
