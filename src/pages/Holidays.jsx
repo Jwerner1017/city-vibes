@@ -24,26 +24,26 @@ const HOLIDAY_HUBS = [
     key: "christmas",
     title: "Christmas",
     description: "Santa photos, holiday lights, markets, and more. Plus links to NORAD & Google Santa Trackers!",
-    image: "https://images.unsplash.com/photo-1512389142860-9c449e58a814?w=800&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1543589077-47d81606c1bf?w=800&h=400&fit=crop",
     link: "/holidays/christmas",
   },
   {
     key: "easter",
     title: "Easter",
     description: "Egg hunts, bunny visits, and spring festivals for the whole family.",
-    image: "https://images.unsplash.com/photo-1521967906867-14ec9d64bee8?w=800&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1617114249257-60b02c63ee57?w=800&h=400&fit=crop",
   },
   {
     key: "st_patricks",
     title: "St. Patrick's Day",
     description: "Parades, green festivities, and family-friendly celebrations.",
-    image: "https://images.unsplash.com/photo-1521075486433-bf4052bb37bc?w=800&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1519659528534-7fd733a832a0?w=800&h=400&fit=crop",
   },
   {
     key: "thanksgiving",
     title: "Thanksgiving",
     description: "Turkey trots, volunteer events, and family gatherings around Louisville.",
-    image: "https://images.unsplash.com/photo-1574672280600-4accfa404c94?w=800&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&h=400&fit=crop",
   },
 ];
 

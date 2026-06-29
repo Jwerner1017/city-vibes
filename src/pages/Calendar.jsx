@@ -4,8 +4,7 @@ import EventCard from "@/components/EventCard";
 import FilterBar from "@/components/FilterBar";
 import BottomNav from "@/components/BottomNav";
 import CreateEventFAB from "@/components/CreateEventFAB";
-import { ChevronLeft, ChevronRight, CalendarDays, List } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import moment from "moment";
 
 export default function Calendar() {
@@ -14,8 +13,6 @@ export default function Calendar() {
   const [filters, setFilters] = useState({});
   const [currentMonth, setCurrentMonth] = useState(moment());
   const [selectedDate, setSelectedDate] = useState(null);
-  const [viewMode, setViewMode] = useState("calendar"); // calendar | list
-
   const loadEvents = useCallback(async () => {
     setLoading(true);
     const query = { status: "approved" };
@@ -48,10 +45,6 @@ export default function Calendar() {
     ? getEventsForDate(selectedDate)
     : [];
 
-  const upcomingEvents = events
-    .filter(e => moment(e.date_start).isSameOrAfter(moment(), "day"))
-    .sort((a, b) => new Date(a.date_start) - new Date(b.date_start));
-
   const prevMonth = () => setCurrentMonth(moment(currentMonth).subtract(1, "month"));
   const nextMonth = () => setCurrentMonth(moment(currentMonth).add(1, "month"));
 
@@ -61,20 +54,7 @@ export default function Calendar() {
       <div className="bg-white/95 backdrop-blur-lg border-b border-border z-20">
         <div className="flex items-center justify-between px-4 pt-3 pb-1">
           <h1 className="font-heading font-black text-xl">Calendar</h1>
-          <div className="flex items-center bg-muted rounded-full p-0.5">
-            <button
-              onClick={() => setViewMode("calendar")}
-              className={`p-1.5 rounded-full transition-all ${viewMode === "calendar" ? "bg-white shadow-sm" : ""}`}
-            >
-              <CalendarDays className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-1.5 rounded-full transition-all ${viewMode === "list" ? "bg-white shadow-sm" : ""}`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
+          <CalendarDays className="w-5 h-5 text-muted-foreground" />
         </div>
         <FilterBar filters={filters} onFiltersChange={setFilters} />
       </div>
@@ -84,7 +64,7 @@ export default function Calendar() {
           <div className="flex items-center justify-center h-64">
             <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
           </div>
-        ) : viewMode === "calendar" ? (
+        ) : (
           <div className="px-4 pt-4">
             {/* Month navigator */}
             <div className="flex items-center justify-between mb-4">
@@ -175,26 +155,6 @@ export default function Calendar() {
                     ))}
                   </div>
                 )}
-              </div>
-            )}
-          </div>
-        ) : (
-          /* List view */
-          <div className="px-4 pt-4">
-            <h3 className="font-heading font-bold text-sm mb-3">
-              Upcoming Events
-              <span className="text-muted-foreground font-normal ml-2">{upcomingEvents.length}</span>
-            </h3>
-            {upcomingEvents.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <CalendarDays className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>No upcoming events</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {upcomingEvents.map(event => (
-                  <EventCard key={event.id} event={event} compact />
-                ))}
               </div>
             )}
           </div>
