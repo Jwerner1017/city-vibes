@@ -5,7 +5,6 @@ import EventCard from "@/components/EventCard";
 import FilterBar from "@/components/FilterBar";
 import BottomNav from "@/components/BottomNav";
 import CreateEventFAB from "@/components/CreateEventFAB";
-import RecommendedEvents from "@/components/RecommendedEvents";
 import { Map, CalendarDays, List, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import moment from "moment";
@@ -30,6 +29,15 @@ export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(moment());
   const [selectedDate, setSelectedDate] = useState(null);
 
+  // Haversine distance in miles
+  const distanceMiles = (lat1, lng1, lat2, lng2) => {
+    const R = 3958.8;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
   const loadEvents = useCallback(async () => {
     setLoading(true);
     const query = { status: "approved" };
@@ -38,7 +46,7 @@ export default function Home() {
     if (filters.is_free === true) query.is_free = true;
     if (filters.is_free === false) query.is_free = false;
 
-    const data = await base44.entities.Event.filter(query, "-date_start", 100);
+    const data = await base44.entities.Event.filter(query, "-date_start", 500);
     let filtered = data;
 
     if (filters.age_range) {
@@ -47,9 +55,17 @@ export default function Home() {
       );
     }
 
+    // Filter to events within ~50 miles of selected city
+    if (selectedCity?.latitude && selectedCity?.longitude) {
+      filtered = filtered.filter(e => {
+        if (!e.latitude || !e.longitude) return false;
+        return distanceMiles(selectedCity.latitude, selectedCity.longitude, e.latitude, e.longitude) <= 50;
+      });
+    }
+
     setEvents(filtered);
     setLoading(false);
-  }, [filters]);
+  }, [filters, selectedCity]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
@@ -136,10 +152,7 @@ export default function Home() {
                   )}
                 </AnimatePresence>
 
-                {/* Recommended overlay */}
-                {!selectedEvent && (
-                  <RecommendedEvents allEvents={events} onEventTap={setSelectedEvent} />
-                )}
+
               </div>
             )}
 
