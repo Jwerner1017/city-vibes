@@ -1,108 +1,25 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-// Stateful batch processor: stores current batch index in a special marker event
-// Each run processes 2 cities, then advances the batch counter
-// Set up as a scheduled automation every 30 minutes to cover all cities over time
+// Stateful rolling-batch orchestrator.
+// Each scheduled run processes BATCH_SIZE cities using syncCityFromSource,
+// which tries RSS → Socrata → LLM for each city.
+// Batch state (which city index we're on) is persisted in the DB.
 
 const BATCH_SIZE = 2;
-const VALID_CATEGORIES = ["festival","outdoor","sports","arts","music","food","holiday","community","education","attraction","trick_or_treat","fireworks","santa","easter","parade","other"];
-const VALID_HOLIDAYS = ["none","july_4th","halloween","christmas","easter","st_patricks","thanksgiving","new_years","valentines","memorial_day","labor_day"];
 
+// Delegate to syncCityFromSource (RSS → Socrata → LLM pipeline)
 async function syncOneCity(base44, city) {
-  const cityName = city.name;
-  const cityState = city.state_code;
-  const cityLat = city.latitude;
-  const cityLng = city.longitude;
-
-  const existing = await base44.asServiceRole.entities.Event.filter(
-    { address: { $regex: cityName, $options: 'i' } },
-    '-date_start', 50
-  );
-  const existingKeys = new Set(existing.map(e => `${e.title?.toLowerCase().slice(0,40)}|${e.date_start?.slice(0,10)}`));
-
-  const today = new Date().toISOString().slice(0,10);
-
-  const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
-    prompt: `Find 10 real upcoming family-friendly community events in ${cityName}, ${cityState} from ${today} through December 2026.
-Include festivals, outdoor events, parades, holiday events, farmers markets, arts events, community gatherings, food events, seasonal attractions.
-Return a JSON object with key "events". Each event must have:
-title, description (2-3 sentences), date_start (YYYY-MM-DDTHH:MM:SS), date_end, location_name (venue name),
-address (full address in ${cityName} ${cityState}), latitude (venue specific), longitude (venue specific),
-category (one of: festival,outdoor,sports,arts,music,food,holiday,community,education,attraction,parade,fireworks,other),
-holiday (one of: none,july_4th,halloween,christmas,easter,st_patricks,thanksgiving,new_years,valentines,memorial_day,labor_day),
-is_free (boolean), price_info (string or null), age_min (0), age_max (18), website_url (string).
-Only REAL confirmed events. Fallback coords: ${cityLat},${cityLng}.`,
-    add_context_from_internet: true,
-    model: 'gemini_3_flash',
-    response_json_schema: {
-      type: "object",
-      required: ["events"],
-      properties: {
-        events: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              title: { type: "string" },
-              description: { type: "string" },
-              date_start: { type: "string" },
-              date_end: { type: "string" },
-              location_name: { type: "string" },
-              address: { type: "string" },
-              latitude: { type: "number" },
-              longitude: { type: "number" },
-              category: { type: "string" },
-              holiday: { type: "string" },
-              is_free: { type: "boolean" },
-              price_info: { type: "string" },
-              age_min: { type: "number" },
-              age_max: { type: "number" },
-              website_url: { type: "string" }
-            }
-          }
-        }
-      }
-    }
+  const result = await base44.asServiceRole.functions.invoke('syncCityFromSource', {
+    city_name: city.name,
+    city_state: city.state_code,
+    city_lat: city.latitude,
+    city_lng: city.longitude,
   });
-
-  const rawEvents = Array.isArray(llmResult) ? llmResult : (llmResult?.events || []);
-  const toCreate = [];
-
-  for (const e of rawEvents) {
-    if (!e.title || !e.date_start) continue;
-    const key = `${e.title?.toLowerCase().slice(0,40)}|${e.date_start?.slice(0,10)}`;
-    if (existingKeys.has(key)) continue;
-    toCreate.push({
-      title: e.title,
-      description: e.description || '',
-      date_start: e.date_start,
-      date_end: e.date_end || e.date_start,
-      location_name: e.location_name || `${cityName} Community Event`,
-      address: e.address || `${cityName}, ${cityState}`,
-      latitude: (e.latitude && Math.abs(e.latitude) > 0.1) ? e.latitude : cityLat,
-      longitude: (e.longitude && Math.abs(e.longitude) > 0.1) ? e.longitude : cityLng,
-      category: VALID_CATEGORIES.includes(e.category) ? e.category : 'other',
-      holiday: VALID_HOLIDAYS.includes(e.holiday) ? e.holiday : 'none',
-      photos: [],
-      is_free: e.is_free !== false,
-      price_info: e.price_info || null,
-      age_min: e.age_min ?? 0,
-      age_max: e.age_max ?? 18,
-      is_permanent: false,
-      website_url: e.website_url || null,
-      status: 'approved',
-      going_count: 0,
-      save_count: 0,
-      featured: false,
-      is_sample: false,
-    });
-  }
-
-  if (toCreate.length > 0) {
-    await base44.asServiceRole.entities.Event.bulkCreate(toCreate);
-  }
-
-  return { city: `${cityName}, ${cityState}`, synced: toCreate.length };
+  return {
+    city: `${city.name}, ${city.state_code}`,
+    synced: result?.synced ?? 0,
+    source: result?.source ?? 'unknown',
+  };
 }
 
 Deno.serve(async (req) => {
