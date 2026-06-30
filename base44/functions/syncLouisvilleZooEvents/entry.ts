@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-const ZOO_LAT = 38.1884;
-const ZOO_LNG = -85.7763;
+const ZOO_LAT = 38.2057;
+const ZOO_LNG = -85.7624;
 const ZOO_ADDRESS = "1100 Trevilian Way, Louisville, KY 40213";
 const ZOO_NAME = "Louisville Zoo";
 const API_URL = "https://louisvillezoo.org/wp-json/tribe/events/v1/events?per_page=50&status=publish&start_date=2026-01-01";
