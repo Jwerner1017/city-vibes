@@ -9,7 +9,6 @@ import ScrollToTop from './components/ScrollToTop';
 import { CityProvider } from '@/lib/CityContext';
 
 import Home from './pages/Home';
-import Calendar from './pages/Calendar';
 import EventDetail from './pages/EventDetail';
 import CreateEvent from './pages/CreateEvent';
 import Holidays from './pages/Holidays';
@@ -47,7 +46,6 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/calendar" element={<Calendar />} />
       <Route path="/event/:id" element={<EventDetail />} />
       <Route path="/create-event" element={<CreateEvent />} />
       <Route path="/holidays" element={<Holidays />} />

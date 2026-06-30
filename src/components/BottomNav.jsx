@@ -1,10 +1,9 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Map, CalendarDays, Ghost, Heart, User } from "lucide-react";
+import { Map, Ghost, Heart, User } from "lucide-react";
 
 const NAV_ITEMS = [
   { path: "/", icon: Map, label: "Map" },
-  { path: "/calendar", icon: CalendarDays, label: "Calendar" },
   { path: "/holidays", icon: Ghost, label: "Holidays" },
   { path: "/saved", icon: Heart, label: "Saved" },
   { path: "/profile", icon: User, label: "Profile" },
