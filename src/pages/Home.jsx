@@ -115,7 +115,7 @@ export default function Home() {
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <div>
             <h1 className="font-heading font-black text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Local Vibes
+              City Vibes
             </h1>
             <CitySelector />
           </div>

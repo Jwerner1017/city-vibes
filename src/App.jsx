@@ -28,7 +28,7 @@ const AuthenticatedApp = () => {
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3" />
-          <p className="font-heading font-bold text-primary text-sm">Loading Local Vibes...</p>
+          <p className="font-heading font-bold text-primary text-sm">Loading City Vibes...</p>
         </div>
       </div>
     );
