@@ -5,7 +5,9 @@ import EventCard from "@/components/EventCard";
 import FilterBar from "@/components/FilterBar";
 import BottomNav from "@/components/BottomNav";
 import CreateEventFAB from "@/components/CreateEventFAB";
-import { Map, CalendarDays, List, ChevronLeft, ChevronRight, X } from "lucide-react";
+import SponsorCard from "@/components/SponsorCard";
+import BecomeSponsorModal from "@/components/BecomeSponsorModal";
+import { Map, CalendarDays, List, ChevronLeft, ChevronRight, X, Store, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import moment from "moment";
 import CitySelector from "@/components/CitySelector";
@@ -24,6 +26,12 @@ export default function Home() {
   const [filters, setFilters] = useState({});
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [viewMode, setViewMode] = useState("map");
+
+  // Sponsor state
+  const [sponsors, setSponsors] = useState([]);
+  const [showSponsors, setShowSponsors] = useState(true);
+  const [selectedSponsor, setSelectedSponsor] = useState(null);
+  const [showSponsorModal, setShowSponsorModal] = useState(false);
 
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(moment());
@@ -68,6 +76,27 @@ export default function Home() {
   }, [filters, selectedCity]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
+
+  // Load sponsors near selected city
+  useEffect(() => {
+    const loadSponsors = async () => {
+      try {
+        const all = await base44.entities.Sponsor.filter({ status: "active" }, "-tier", 100);
+        if (selectedCity?.latitude && selectedCity?.longitude) {
+          const nearby = all.filter(s => {
+            if (!s.latitude || !s.longitude) return false;
+            return distanceMiles(selectedCity.latitude, selectedCity.longitude, s.latitude, s.longitude) <= 50;
+          });
+          setSponsors(nearby);
+        } else {
+          setSponsors(all);
+        }
+      } catch {
+        setSponsors([]);
+      }
+    };
+    loadSponsors();
+  }, [selectedCity]);
 
   // Calendar helpers
   const daysInMonth = currentMonth.daysInMonth();
@@ -123,11 +152,37 @@ export default function Home() {
               <div className="absolute inset-0">
                 <EventMap
                   events={events}
+                  sponsors={showSponsors ? sponsors : []}
                   selectedId={selectedEvent?.id}
-                  onEventTap={setSelectedEvent}
+                  selectedSponsorId={selectedSponsor?.id}
+                  onEventTap={(e) => { setSelectedSponsor(null); setSelectedEvent(e); }}
+                  onSponsorTap={(s) => { setSelectedEvent(null); setSelectedSponsor(s); }}
                   cityCenter={(selectedCity && isFinite(selectedCity.latitude) && isFinite(selectedCity.longitude)) ? [selectedCity.latitude, selectedCity.longitude] : null}
                   cityZoom={selectedCity?.zoom || 11}
                 />
+
+                {/* Sponsor layer toggle + Become a Sponsor button */}
+                <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
+                  <button
+                    onClick={() => setShowSponsors(v => !v)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold shadow-lg transition-all ${
+                      showSponsors
+                        ? "bg-amber-500 text-white"
+                        : "bg-white/90 text-gray-500"
+                    }`}
+                  >
+                    <Store className="w-3.5 h-3.5" />
+                    {showSponsors ? `${sponsors.length} Sponsors` : "Sponsors Off"}
+                  </button>
+
+                  <button
+                    onClick={() => setShowSponsorModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-gradient-to-r from-primary to-accent text-white"
+                  >
+                    <Star className="w-3.5 h-3.5" />
+                    Become a Sponsor
+                  </button>
+                </div>
 
                 {/* Selected event card */}
                 <AnimatePresence>
@@ -152,7 +207,28 @@ export default function Home() {
                   )}
                 </AnimatePresence>
 
-
+                {/* Selected sponsor card */}
+                <AnimatePresence>
+                  {selectedSponsor && (
+                    <motion.div
+                      initial={{ y: 200, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 200, opacity: 0 }}
+                      transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                      className="absolute bottom-20 left-4 right-4 z-30"
+                    >
+                      <div className="relative">
+                        <button
+                          onClick={() => setSelectedSponsor(null)}
+                          className="absolute -top-2 -right-2 z-10 w-7 h-7 bg-gray-900 border border-white/20 rounded-full shadow-md flex items-center justify-center"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
+                        <SponsorCard sponsor={selectedSponsor} onClose={() => setSelectedSponsor(null)} />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
 
@@ -254,6 +330,13 @@ export default function Home() {
 
       <CreateEventFAB />
       <BottomNav />
+
+      {/* Become a Sponsor modal */}
+      <AnimatePresence>
+        {showSponsorModal && (
+          <BecomeSponsorModal onClose={() => setShowSponsorModal(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

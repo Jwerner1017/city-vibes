@@ -1,0 +1,84 @@
+{
+  "name": "SponsorApplication",
+  "type": "object",
+  "properties": {
+    "business_name": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "website_url": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state_code": {
+      "type": "string"
+    },
+    "business_category": {
+      "type": "string",
+      "enum": [
+        "restaurant",
+        "retail",
+        "entertainment",
+        "fitness",
+        "health",
+        "education",
+        "services",
+        "other"
+      ]
+    },
+    "business_description": {
+      "type": "string"
+    },
+    "proposed_discount": {
+      "type": "string"
+    },
+    "tier_interest": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "silver",
+        "gold",
+        "platinum"
+      ]
+    },
+    "how_heard": {
+      "type": "string"
+    },
+    "agreed_to_terms": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "reviewing",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "admin_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "business_name",
+    "contact_name",
+    "contact_email",
+    "agreed_to_terms"
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "name": "Sponsor",
+  "type": "object",
+  "properties": {
+    "business_name": {
+      "type": "string"
+    },
+    "tagline": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "restaurant",
+        "retail",
+        "entertainment",
+        "fitness",
+        "health",
+        "education",
+        "services",
+        "other"
+      ]
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state_code": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "website_url": {
+      "type": "string"
+    },
+    "discount_title": {
+      "type": "string"
+    },
+    "discount_description": {
+      "type": "string"
+    },
+    "discount_code": {
+      "type": "string"
+    },
+    "discount_expiry": {
+      "type": "string",
+      "format": "date"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "silver",
+        "gold",
+        "platinum"
+      ],
+      "default": "bronze"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "business_name",
+    "latitude",
+    "longitude"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": null,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CATEGORY_CONFIG } from "@/lib/constants";
 
-export default function EventMap({ events, onEventTap, selectedId, cityCenter, cityZoom }) {
+const TIER_COLORS = { platinum: "#e5e4e2", gold: "#FFD700", silver: "#C0C0C0", bronze: "#CD7F32" };
+
+export default function EventMap({ events, sponsors = [], onEventTap, onSponsorTap, selectedId, selectedSponsorId, cityCenter, cityZoom }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
+  const sponsorMarkersRef = useRef([]);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
@@ -76,6 +79,43 @@ export default function EventMap({ events, onEventTap, selectedId, cityCenter, c
       markersRef.current.push(marker);
     });
   }, [events, selectedId, mapReady, onEventTap]);
+
+  // Sponsor markers
+  useEffect(() => {
+    if (!mapInstance.current || !mapReady) return;
+    const L = window.L;
+    const map = mapInstance.current;
+
+    sponsorMarkersRef.current.forEach(m => map.removeLayer(m));
+    sponsorMarkersRef.current = [];
+
+    sponsors.forEach(sponsor => {
+      if (!sponsor.latitude || !sponsor.longitude) return;
+      const isSelected = sponsor.id === selectedSponsorId;
+      const tierColor = TIER_COLORS[sponsor.tier] || TIER_COLORS.bronze;
+      const size = isSelected ? 44 : 36;
+
+      const icon = L.divIcon({
+        className: "event-marker",
+        html: `<div style="
+          background: ${isSelected ? tierColor : "#1a1a2e"};
+          width: ${size}px; height: ${size}px;
+          border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: ${isSelected ? "20px" : "16px"};
+          border: 2.5px solid ${tierColor};
+          box-shadow: 0 2px 12px rgba(0,0,0,0.3), 0 0 0 ${isSelected ? "3px" : "0"} ${tierColor}40;
+          transition: all 0.2s; cursor: pointer;
+        ">🏪</div>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+
+      const marker = L.marker([sponsor.latitude, sponsor.longitude], { icon }).addTo(map);
+      marker.on("click", () => onSponsorTap?.(sponsor));
+      sponsorMarkersRef.current.push(marker);
+    });
+  }, [sponsors, selectedSponsorId, mapReady, onSponsorTap]);
 
   // Fly to city when it changes
   const prevCityRef = useRef(null);
