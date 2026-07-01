@@ -19,6 +19,10 @@ import Profile from './pages/Profile';
 import Donate from './pages/Donate';
 import Moderation from './pages/Moderation';
 import OrganizerDashboard from './pages/OrganizerDashboard';
+import SponsorDirectory from './pages/SponsorDirectory';
+import EventReviewsPage from './pages/EventReviewsPage';
+import BecomeASponsor from './pages/BecomeASponsor';
+import SwitchCity from './pages/SwitchCity';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -56,6 +60,10 @@ const AuthenticatedApp = () => {
       <Route path="/donate" element={<Donate />} />
       <Route path="/moderation" element={<Moderation />} />
       <Route path="/organizer" element={<OrganizerDashboard />} />
+      <Route path="/sponsor-directory" element={<SponsorDirectory />} />
+      <Route path="/event-reviews" element={<EventReviewsPage />} />
+      <Route path="/become-a-sponsor" element={<BecomeASponsor />} />
+      <Route path="/switch-city" element={<SwitchCity />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import BottomNav from "@/components/BottomNav";
-import { User, Heart, Shield, LogOut, ChevronRight, BarChart3 } from "lucide-react";
+import { User, Heart, Shield, LogOut, ChevronRight, BarChart3, Store, MessageSquarePlus, Star, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserBadges, { computeBadges } from "@/components/UserBadges";
 
@@ -129,6 +129,38 @@ export default function Profile() {
             <div className="flex items-center gap-3">
               <Heart className="w-5 h-5 text-red-500" />
               <span className="font-semibold text-sm">Saved Events</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+
+          <Link to="/switch-city" className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-blue-500" />
+              <span className="font-semibold text-sm">Switch City</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+
+          <Link to="/sponsor-directory" className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <Store className="w-5 h-5 text-amber-500" />
+              <span className="font-semibold text-sm">Sponsor Directory</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+
+          <Link to="/event-reviews" className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <MessageSquarePlus className="w-5 h-5 text-primary" />
+              <span className="font-semibold text-sm">Event Reviews</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+
+          <Link to="/become-a-sponsor" className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <Star className="w-5 h-5 text-yellow-500" />
+              <span className="font-semibold text-sm">Become a Sponsor</span>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </Link>
