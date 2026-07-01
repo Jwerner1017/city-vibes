@@ -36,7 +36,7 @@ export default function SwitchCity() {
 
   return (
     <div className="min-h-screen bg-gray-950 pb-24">
-      <div className="sticky top-0 bg-gray-950/95 backdrop-blur-lg border-b border-white/10 z-20">
+      <div className="sticky top-0 bg-gray-950/95 backdrop-blur-lg border-b border-white/10 z-20 safe-top">
         <div className="flex items-center gap-3 px-4 py-3">
           <Link to="/" className="p-1">
             <ArrowLeft className="w-5 h-5 text-white" />

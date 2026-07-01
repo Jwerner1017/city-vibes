@@ -1,12 +1,14 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import { CityProvider } from '@/lib/CityContext';
+import { ThemeProvider } from 'next-themes';
+import { AnimatePresence, motion } from 'framer-motion';
 
 import { lazy, Suspense } from 'react';
 
@@ -28,6 +30,7 @@ const SwitchCity = lazy(() => import('./pages/SwitchCity'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const location = useLocation();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -55,41 +58,53 @@ const AuthenticatedApp = () => {
         <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
       </div>
     }>
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/event/:id" element={<EventDetail />} />
-      <Route path="/create-event" element={<CreateEvent />} />
-      <Route path="/holidays" element={<Holidays />} />
-      <Route path="/holidays/halloween" element={<HalloweenHub />} />
-      <Route path="/holidays/christmas" element={<ChristmasHub />} />
-      <Route path="/saved" element={<Saved />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/donate" element={<Donate />} />
-      <Route path="/moderation" element={<Moderation />} />
-      <Route path="/organizer" element={<OrganizerDashboard />} />
-      <Route path="/sponsor-directory" element={<SponsorDirectory />} />
-      <Route path="/event-reviews" element={<EventReviewsPage />} />
-      <Route path="/become-a-sponsor" element={<BecomeASponsor />} />
-      <Route path="/switch-city" element={<SwitchCity />} />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 10 }}
+        transition={{ duration: 0.2 }}
+      >
+        <Routes location={location}>
+          <Route path="/" element={<Home />} />
+          <Route path="/event/:id" element={<EventDetail />} />
+          <Route path="/create-event" element={<CreateEvent />} />
+          <Route path="/holidays" element={<Holidays />} />
+          <Route path="/holidays/halloween" element={<HalloweenHub />} />
+          <Route path="/holidays/christmas" element={<ChristmasHub />} />
+          <Route path="/saved" element={<Saved />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/donate" element={<Donate />} />
+          <Route path="/moderation" element={<Moderation />} />
+          <Route path="/organizer" element={<OrganizerDashboard />} />
+          <Route path="/sponsor-directory" element={<SponsorDirectory />} />
+          <Route path="/event-reviews" element={<EventReviewsPage />} />
+          <Route path="/become-a-sponsor" element={<BecomeASponsor />} />
+          <Route path="/switch-city" element={<SwitchCity />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
     </Suspense>
   );
 };
 
 function App() {
   return (
-    <AuthProvider>
-      <CityProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <Router>
-            <ScrollToTop />
-            <AuthenticatedApp />
-          </Router>
-          <Toaster />
-        </QueryClientProvider>
-      </CityProvider>
-    </AuthProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <AuthProvider>
+        <CityProvider>
+          <QueryClientProvider client={queryClientInstance}>
+            <Router>
+              <ScrollToTop />
+              <AuthenticatedApp />
+            </Router>
+            <Toaster />
+          </QueryClientProvider>
+        </CityProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 

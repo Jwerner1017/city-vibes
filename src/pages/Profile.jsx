@@ -49,6 +49,7 @@ export default function Profile() {
 
   const handleDeleteAccount = async () => {
     await base44.auth.logout();
+    localStorage.clear();
     toast({ title: "Account deleted", description: "Your account and data access have been removed." });
     navigate("/");
   };

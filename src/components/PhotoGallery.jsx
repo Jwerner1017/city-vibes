@@ -83,7 +83,10 @@ function Lightbox({ photos, index, setIndex, onClose, title }) {
   return (
     <div className="fixed inset-0 z-[9999] bg-black/95 flex flex-col items-center justify-center" onClick={onClose}>
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-safe pt-4 pb-3 bg-gradient-to-b from-black/60 to-transparent z-10">
+      <div
+        className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pb-3 bg-gradient-to-b from-black/60 to-transparent z-10"
+        style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}
+      >
         <span className="text-white/60 text-sm font-semibold">{index + 1} / {photos.length}</span>
         <p className="text-white font-heading font-bold text-sm truncate max-w-[60%] text-center">{title}</p>
         <button onClick={onClose} className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white">

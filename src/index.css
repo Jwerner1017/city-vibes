@@ -73,25 +73,33 @@
   }
 }
 .dark {
-  --background: 220 20% 8%;
-  --foreground: 40 20% 95%;
-  --card: 220 15% 12%;
-  --card-foreground: 40 20% 95%;
-  --popover: 220 15% 12%;
-  --popover-foreground: 40 20% 95%;
+  --background: 222 20% 8%;
+  --foreground: 40 15% 95%;
+  --card: 222 20% 11%;
+  --card-foreground: 40 15% 95%;
+  --popover: 222 20% 11%;
+  --popover-foreground: 40 15% 95%;
   --primary: 152 55% 45%;
   --primary-foreground: 0 0% 100%;
   --secondary: 28 85% 55%;
   --secondary-foreground: 0 0% 100%;
-  --muted: 220 15% 18%;
+  --muted: 222 15% 18%;
   --muted-foreground: 220 10% 60%;
   --accent: 210 70% 55%;
   --accent-foreground: 0 0% 100%;
-  --destructive: 0 70% 55%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border: 220 15% 22%;
-  --input: 220 15% 22%;
+  --border: 222 15% 20%;
+  --input: 222 15% 20%;
   --ring: 152 55% 45%;
+  --sidebar-background: 222 20% 10%;
+  --sidebar-foreground: 40 15% 90%;
+  --sidebar-primary: 152 55% 45%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 222 15% 18%;
+  --sidebar-accent-foreground: 40 15% 95%;
+  --sidebar-border: 222 15% 20%;
+  --sidebar-ring: 152 55% 45%;
 }
 
 @layer base {
@@ -103,13 +111,18 @@
   }
 }
 
-button, nav, [role="tab"], .select-none-ui {
+button, a, nav, [role="tab"], label, .select-none-ui {
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
+p, span.content, .event-description, textarea, input {
+  -webkit-user-select: text;
+  user-select: text;
+}
 body {
   overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Map styles */
