@@ -63,7 +63,7 @@ export default function Home() {
       query.longitude = { $gte: selectedCity.longitude - lngDelta, $lte: selectedCity.longitude + lngDelta };
     }
 
-    const data = await base44.entities.Event.filter(query, "-date_start", 500);
+    const data = await base44.entities.Event.filter(query, "date_start", 500);
     let filtered = data;
 
     if (filters.age_range) {
