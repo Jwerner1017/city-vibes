@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import moment from "moment";
 import CitySelector from "@/components/CitySelector";
 import { useCity } from "@/lib/CityContext";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const VIEW_TABS = [
   { id: "map", icon: Map, label: "Map" },
@@ -120,7 +121,7 @@ export default function Home() {
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="bg-white/95 backdrop-blur-lg border-b border-border z-20 relative">
+      <div className="bg-white/95 backdrop-blur-lg border-b border-border z-20 relative safe-top">
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <div>
             <h1 className="font-heading font-black text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -243,7 +244,7 @@ export default function Home() {
 
             {/* CALENDAR VIEW */}
             {viewMode === "calendar" && (
-              <div className="h-full overflow-y-auto pb-24 px-4 pt-4">
+              <div className="h-full overflow-y-auto pb-24 px-4 pt-4" style={{ overscrollBehavior: "none" }}>
                 <div className="flex items-center justify-between mb-4">
                   <button onClick={() => setCurrentMonth(moment(currentMonth).subtract(1, "month"))} className="p-2 rounded-full hover:bg-muted">
                     <ChevronLeft className="w-5 h-5" />
@@ -316,7 +317,7 @@ export default function Home() {
 
             {/* LIST VIEW */}
             {viewMode === "list" && (
-              <div className="h-full overflow-y-auto pb-24 px-4 pt-4">
+              <PullToRefresh onRefresh={loadEvents} className="h-full pb-24 px-4 pt-4">
                 <h3 className="font-heading font-bold text-sm mb-3">
                   Upcoming Events
                   <span className="text-muted-foreground font-normal ml-2">{upcomingEvents.length}</span>
@@ -331,7 +332,7 @@ export default function Home() {
                     {upcomingEvents.map(event => <EventCard key={event.id} event={event} compact />)}
                   </div>
                 )}
-              </div>
+              </PullToRefresh>
             )}
           </>
         )}

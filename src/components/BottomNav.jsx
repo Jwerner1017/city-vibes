@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Map, Ghost, Heart, User } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -11,9 +11,10 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-border z-50 safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-border z-50 safe-bottom select-none">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
         {NAV_ITEMS.map(({ path, icon: Icon, label }) => {
           const isActive = path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
@@ -21,6 +22,12 @@ export default function BottomNav() {
             <Link
               key={path}
               to={path}
+              onClick={(e) => {
+                if (isActive) {
+                  e.preventDefault();
+                  navigate(path, { replace: true });
+                }
+              }}
               className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${
                 isActive
                   ? "text-primary scale-105"

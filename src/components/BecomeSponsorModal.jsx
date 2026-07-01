@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { X, ChevronRight, ChevronLeft, CheckCircle, Building2, Tag, Star, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 
 const TIERS = [
@@ -310,17 +311,18 @@ export default function BecomeSponsorModal({ onClose }) {
 
                   <div>
                     <label className="text-white/60 text-xs font-semibold block mb-1">Business Category *</label>
-                    <select
-                      value={form.business_category}
-                      onChange={e => handleFormChange("business_category", e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-primary/60 transition-colors appearance-none"
-                      style={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-                    >
-                      <option value="" className="bg-gray-900">Select category...</option>
-                      {["restaurant","retail","entertainment","fitness","health","education","services","other"].map(c => (
-                        <option key={c} value={c} className="bg-gray-900 capitalize">{c.charAt(0).toUpperCase() + c.slice(1)}</option>
-                      ))}
-                    </select>
+                    <Select value={form.business_category} onValueChange={v => handleFormChange("business_category", v)}>
+                      <SelectTrigger className="w-full h-auto bg-white/5 border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:ring-1 focus:ring-primary/60">
+                        <SelectValue placeholder="Select category..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-900 border-white/10 text-white">
+                        {["restaurant","retail","entertainment","fitness","health","education","services","other"].map(c => (
+                          <SelectItem key={c} value={c} className="capitalize text-white focus:bg-white/10 focus:text-white">
+                            {c.charAt(0).toUpperCase() + c.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>

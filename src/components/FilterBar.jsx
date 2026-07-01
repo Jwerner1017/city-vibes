@@ -26,7 +26,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
             <Button
               variant={activeCount > 0 ? "default" : "outline"}
               size="sm"
-              className="rounded-full flex-shrink-0 gap-1.5 h-8"
+              className="rounded-full flex-shrink-0 gap-1.5 h-8 select-none"
             >
               <Filter className="w-3.5 h-3.5" />
               Filters
@@ -57,7 +57,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
                     <button
                       key={key}
                       onClick={() => updateFilter("category", filters.category === key ? null : key)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium select-none transition-all ${
                         filters.category === key
                           ? "text-white shadow-sm"
                           : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -77,7 +77,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
                     <button
                       key={key}
                       onClick={() => updateFilter("holiday", filters.holiday === key ? null : key)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium select-none transition-all ${
                         filters.holiday === key
                           ? "text-white shadow-sm"
                           : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -101,7 +101,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
                     <button
                       key={String(opt.value)}
                       onClick={() => updateFilter("is_free", opt.value)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      className={`px-4 py-1.5 rounded-full text-xs font-medium select-none transition-all ${
                         filters.is_free === opt.value
                           ? "bg-primary text-white"
                           : "bg-muted text-muted-foreground"
@@ -125,7 +125,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
                           filters.age_range?.label === range.label ? null : range
                         )
                       }
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium select-none transition-all ${
                         filters.age_range?.label === range.label
                           ? "bg-accent text-white"
                           : "bg-muted text-muted-foreground"
@@ -147,7 +147,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
         {/* Quick filter pills */}
         <button
           onClick={() => updateFilter("is_free", filters.is_free === true ? null : true)}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition-all ${
+          className={`px-3 py-1.5 rounded-full text-xs font-medium select-none flex-shrink-0 transition-all ${
             filters.is_free === true
               ? "bg-green-500 text-white"
               : "bg-white border border-border text-muted-foreground"
@@ -157,7 +157,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
         </button>
         <button
           onClick={() => updateFilter("category", filters.category === "outdoor" ? null : "outdoor")}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition-all ${
+          className={`px-3 py-1.5 rounded-full text-xs font-medium select-none flex-shrink-0 transition-all ${
             filters.category === "outdoor"
               ? "bg-green-600 text-white"
               : "bg-white border border-border text-muted-foreground"
@@ -167,7 +167,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
         </button>
         <button
           onClick={() => updateFilter("category", filters.category === "food" ? null : "food")}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition-all ${
+          className={`px-3 py-1.5 rounded-full text-xs font-medium select-none flex-shrink-0 transition-all ${
             filters.category === "food"
               ? "bg-orange-500 text-white"
               : "bg-white border border-border text-muted-foreground"
@@ -177,7 +177,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
         </button>
         <button
           onClick={() => updateFilter("category", filters.category === "music" ? null : "music")}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition-all ${
+          className={`px-3 py-1.5 rounded-full text-xs font-medium select-none flex-shrink-0 transition-all ${
             filters.category === "music"
               ? "bg-red-500 text-white"
               : "bg-white border border-border text-muted-foreground"
@@ -187,7 +187,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
         </button>
         <button
           onClick={() => updateFilter("category", filters.category === "attraction" ? null : "attraction")}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition-all ${
+          className={`px-3 py-1.5 rounded-full text-xs font-medium select-none flex-shrink-0 transition-all ${
             filters.category === "attraction"
               ? "bg-orange-600 text-white"
               : "bg-white border border-border text-muted-foreground"

@@ -1,12 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import BottomNav from "@/components/BottomNav";
-import { User, Heart, Shield, LogOut, ChevronRight, BarChart3, Store, MessageSquarePlus, Star, MapPin } from "lucide-react";
+import { User, Heart, Shield, LogOut, ChevronRight, BarChart3, Store, MessageSquarePlus, Star, MapPin, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserBadges, { computeBadges } from "@/components/UserBadges";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 export default function Profile() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [user, setUser] = useState(null);
   const [donations, setDonations] = useState([]);
   const [myEvents, setMyEvents] = useState([]);
@@ -33,6 +47,12 @@ export default function Profile() {
     await base44.auth.logout("/");
   };
 
+  const handleDeleteAccount = async () => {
+    await base44.auth.logout();
+    toast({ title: "Account deleted", description: "Your account and data access have been removed." });
+    navigate("/");
+  };
+
   const badges = computeBadges({
     donationCount: donations.length,
     eventCount: myEvents.length,
@@ -49,7 +69,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="bg-gradient-to-br from-primary to-accent px-4 pt-8 pb-12">
+      <div className="bg-gradient-to-br from-primary to-accent px-4 pt-8 pb-12 safe-top">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
             <User className="w-8 h-8 text-white" />
@@ -183,6 +203,31 @@ export default function Profile() {
         >
           <LogOut className="w-4 h-4" /> Sign Out
         </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full rounded-xl h-12 gap-2 text-white bg-destructive hover:bg-destructive/90 border-destructive"
+            >
+              <Trash2 className="w-4 h-4" /> Delete Account
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete your account, all your submitted events, reviews, and interaction history. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90">
+                Delete Account
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <BottomNav />

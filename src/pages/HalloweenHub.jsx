@@ -120,7 +120,7 @@ export default function HalloweenHub() {
             <p className="text-white/80 text-xs">Louisville's spookiest events & Treat Map</p>
           </div>
         </div>
-        <button onClick={() => navigate(-1)} className="absolute top-4 left-4 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+        <button onClick={() => navigate(-1)} className="absolute top-4 left-4 w-11 h-11 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
       </div>

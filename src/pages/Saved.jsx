@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import EventCard from "@/components/EventCard";
 import BottomNav from "@/components/BottomNav";
+import PullToRefresh from "@/components/PullToRefresh";
 import { Heart, Bookmark, Users } from "lucide-react";
 
 export default function Saved() {
@@ -9,26 +10,25 @@ export default function Saved() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const interactions = await base44.entities.UserInteraction.filter({ type: tab });
-      if (interactions.length === 0) {
-        setEvents([]);
-        setLoading(false);
-        return;
-      }
-      const allEvents = await base44.entities.Event.filter({ status: "approved" }, "-date_start", 200);
-      const interactionIds = new Set(interactions.map(i => i.event_id));
-      setEvents(allEvents.filter(e => interactionIds.has(e.id)));
+  const loadSaved = useCallback(async () => {
+    setLoading(true);
+    const interactions = await base44.entities.UserInteraction.filter({ type: tab });
+    if (interactions.length === 0) {
+      setEvents([]);
       setLoading(false);
-    };
-    load();
+      return;
+    }
+    const allEvents = await base44.entities.Event.filter({ status: "approved" }, "-date_start", 200);
+    const interactionIds = new Set(interactions.map(i => i.event_id));
+    setEvents(allEvents.filter(e => interactionIds.has(e.id)));
+    setLoading(false);
   }, [tab]);
+
+  useEffect(() => { loadSaved(); }, [loadSaved]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="bg-white/95 backdrop-blur-lg border-b border-border sticky top-0 z-20">
+      <div className="bg-white/95 backdrop-blur-lg border-b border-border sticky top-0 z-20 safe-top">
         <div className="px-4 pt-3 pb-1">
           <h1 className="font-heading font-black text-xl">My Events</h1>
         </div>
@@ -52,7 +52,7 @@ export default function Saved() {
         </div>
       </div>
 
-      <div className="px-4 pt-4">
+      <PullToRefresh onRefresh={loadSaved} className="px-4 pt-4">
         {loading ? (
           <div className="flex items-center justify-center h-40">
             <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -80,7 +80,7 @@ export default function Saved() {
             ))}
           </div>
         )}
-      </div>
+      </PullToRefresh>
 
       <BottomNav />
     </div>

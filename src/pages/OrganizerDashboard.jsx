@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { CATEGORY_CONFIG } from "@/lib/constants";
 import BottomNav from "@/components/BottomNav";
+import PullToRefresh from "@/components/PullToRefresh";
 import { ArrowLeft, Users, Heart, Eye, TrendingUp, Calendar, BarChart3, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import moment from "moment";
@@ -72,30 +73,29 @@ export default function OrganizerDashboard() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const me = await base44.auth.me();
-        setUser(me);
-        // Load events created by this user
-        const myEvents = await base44.entities.Event.filter({ created_by_id: me.id }, "-date_start", 100);
-        setEvents(myEvents);
+  const loadDashboard = useCallback(async () => {
+    try {
+      const me = await base44.auth.me();
+      setUser(me);
+      // Load events created by this user
+      const myEvents = await base44.entities.Event.filter({ created_by_id: me.id }, "-date_start", 100);
+      setEvents(myEvents);
 
-        if (myEvents.length > 0) {
-          // Load all interactions for these events in one batch using $in
-          const eventIds = myEvents.map(e => e.id);
-          const allInteractions = await base44.asServiceRole?.entities?.UserInteraction
-            ? base44.asServiceRole.entities.UserInteraction.filter({ event_id: { $in: eventIds } })
-            : Promise.resolve([]);
-          setInteractions(await allInteractions);
-        }
-      } catch (err) {
-        console.error(err);
+      if (myEvents.length > 0) {
+        // Load all interactions for these events in one batch using $in
+        const eventIds = myEvents.map(e => e.id);
+        const allInteractions = await base44.asServiceRole?.entities?.UserInteraction
+          ? base44.asServiceRole.entities.UserInteraction.filter({ event_id: { $in: eventIds } })
+          : Promise.resolve([]);
+        setInteractions(await allInteractions);
       }
-      setLoading(false);
-    };
-    load();
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
   }, []);
+
+  useEffect(() => { loadDashboard(); }, [loadDashboard]);
 
   const getCount = (eventId, type) =>
     interactions.filter(i => i.event_id === eventId && i.type === type).length;
@@ -121,7 +121,7 @@ export default function OrganizerDashboard() {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="bg-gradient-to-br from-primary via-primary to-accent px-4 pt-10 pb-14">
-        <button onClick={() => navigate(-1)} className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center mb-4">
+        <button onClick={() => navigate(-1)} className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center mb-4">
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
         <div className="flex items-center gap-2 mb-1">
@@ -132,7 +132,7 @@ export default function OrganizerDashboard() {
         <p className="text-white/70 text-xs mt-0.5">Track engagement across all your submissions</p>
       </div>
 
-      <div className="px-4 -mt-8 space-y-4">
+      <PullToRefresh onRefresh={loadDashboard} className="px-4 -mt-8 space-y-4">
         {/* Stats overview */}
         <div className="grid grid-cols-3 gap-3">
           <StatCard icon={Calendar} label="Events" value={events.length} color="#3b82f6" />
@@ -203,7 +203,7 @@ export default function OrganizerDashboard() {
             </div>
           </>
         )}
-      </div>
+      </PullToRefresh>
 
       <BottomNav />
     </div>

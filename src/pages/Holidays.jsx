@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import BottomNav from "@/components/BottomNav";
 import EventCard from "@/components/EventCard";
+import PullToRefresh from "@/components/PullToRefresh";
 import { HOLIDAY_CONFIG } from "@/lib/constants";
 import { ChevronRight, ExternalLink } from "lucide-react";
 
@@ -50,31 +51,30 @@ const HOLIDAY_HUBS = [
 export default function Holidays() {
   const [holidayEvents, setHolidayEvents] = useState({});
 
-  useEffect(() => {
-    const load = async () => {
-      const events = await base44.entities.Event.filter({ status: "approved" }, "-date_start", 200);
-      const grouped = {};
-      events.forEach(e => {
-        if (e.holiday && e.holiday !== "none") {
-          if (!grouped[e.holiday]) grouped[e.holiday] = [];
-          grouped[e.holiday].push(e);
-        }
-      });
-      setHolidayEvents(grouped);
-    };
-    load();
+  const loadHolidays = useCallback(async () => {
+    const events = await base44.entities.Event.filter({ status: "approved" }, "-date_start", 200);
+    const grouped = {};
+    events.forEach(e => {
+      if (e.holiday && e.holiday !== "none") {
+        if (!grouped[e.holiday]) grouped[e.holiday] = [];
+        grouped[e.holiday].push(e);
+      }
+    });
+    setHolidayEvents(grouped);
   }, []);
+
+  useEffect(() => { loadHolidays(); }, [loadHolidays]);
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="bg-white/95 backdrop-blur-lg border-b border-border sticky top-0 z-20">
+      <div className="bg-white/95 backdrop-blur-lg border-b border-border sticky top-0 z-20 safe-top">
         <div className="px-4 pt-3 pb-3">
           <h1 className="font-heading font-black text-xl">Holiday Hubs 🎉</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Seasonal events & celebrations</p>
         </div>
       </div>
 
-      <div className="px-4 pt-4 space-y-4">
+      <PullToRefresh onRefresh={loadHolidays} className="px-4 pt-4 space-y-4">
         {HOLIDAY_HUBS.map(hub => {
           const config = HOLIDAY_CONFIG[hub.key];
           const events = holidayEvents[hub.key] || [];
@@ -117,7 +117,7 @@ export default function Holidays() {
             </div>
           );
         })}
-      </div>
+      </PullToRefresh>
 
       <BottomNav />
     </div>

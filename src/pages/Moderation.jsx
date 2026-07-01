@@ -29,7 +29,7 @@ export default function Moderation() {
     <div className="min-h-screen bg-background pb-8">
       <div className="sticky top-0 bg-white/95 backdrop-blur-lg border-b border-border z-20">
         <div className="flex items-center justify-between px-4 py-3">
-          <button onClick={() => navigate(-1)} className="p-1"><ArrowLeft className="w-5 h-5" /></button>
+          <button onClick={() => navigate(-1)} className="w-11 h-11 flex items-center justify-center -ml-2"><ArrowLeft className="w-5 h-5" /></button>
           <h1 className="font-heading font-bold text-base">Moderation Queue</h1>
           <Badge variant="secondary" className="text-xs">{events.length}</Badge>
         </div>

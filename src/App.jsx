@@ -8,21 +8,23 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import { CityProvider } from '@/lib/CityContext';
 
-import Home from './pages/Home';
-import EventDetail from './pages/EventDetail';
-import CreateEvent from './pages/CreateEvent';
-import Holidays from './pages/Holidays';
-import HalloweenHub from './pages/HalloweenHub';
-import ChristmasHub from './pages/ChristmasHub';
-import Saved from './pages/Saved';
-import Profile from './pages/Profile';
-import Donate from './pages/Donate';
-import Moderation from './pages/Moderation';
-import OrganizerDashboard from './pages/OrganizerDashboard';
-import SponsorDirectory from './pages/SponsorDirectory';
-import EventReviewsPage from './pages/EventReviewsPage';
-import BecomeASponsor from './pages/BecomeASponsor';
-import SwitchCity from './pages/SwitchCity';
+import { lazy, Suspense } from 'react';
+
+const Home = lazy(() => import('./pages/Home'));
+const EventDetail = lazy(() => import('./pages/EventDetail'));
+const CreateEvent = lazy(() => import('./pages/CreateEvent'));
+const Holidays = lazy(() => import('./pages/Holidays'));
+const HalloweenHub = lazy(() => import('./pages/HalloweenHub'));
+const ChristmasHub = lazy(() => import('./pages/ChristmasHub'));
+const Saved = lazy(() => import('./pages/Saved'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Donate = lazy(() => import('./pages/Donate'));
+const Moderation = lazy(() => import('./pages/Moderation'));
+const OrganizerDashboard = lazy(() => import('./pages/OrganizerDashboard'));
+const SponsorDirectory = lazy(() => import('./pages/SponsorDirectory'));
+const EventReviewsPage = lazy(() => import('./pages/EventReviewsPage'));
+const BecomeASponsor = lazy(() => import('./pages/BecomeASponsor'));
+const SwitchCity = lazy(() => import('./pages/SwitchCity'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +50,11 @@ const AuthenticatedApp = () => {
   }
 
   return (
+    <Suspense fallback={
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    }>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/event/:id" element={<EventDetail />} />
@@ -66,6 +73,7 @@ const AuthenticatedApp = () => {
       <Route path="/switch-city" element={<SwitchCity />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 

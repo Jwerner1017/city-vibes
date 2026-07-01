@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Search, Star } from "lucide-react";
 import SponsorCard from "@/components/SponsorCard";
 import BottomNav from "@/components/BottomNav";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const TIER_ORDER = { platinum: 0, gold: 1, silver: 2, bronze: 3 };
 const CATEGORIES = [
@@ -24,14 +25,13 @@ export default function SponsorDirectory() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
 
-  useEffect(() => {
-    const load = async () => {
-      const data = await base44.entities.Sponsor.filter({ status: "active" }, "-tier", 200);
-      setSponsors(data);
-      setLoading(false);
-    };
-    load();
+  const loadSponsors = useCallback(async () => {
+    const data = await base44.entities.Sponsor.filter({ status: "active" }, "-tier", 200);
+    setSponsors(data);
+    setLoading(false);
   }, []);
+
+  useEffect(() => { loadSponsors(); }, [loadSponsors]);
 
   const filtered = useMemo(() => {
     return sponsors
@@ -43,7 +43,7 @@ export default function SponsorDirectory() {
   return (
     <div className="min-h-screen bg-gray-950 pb-24">
       {/* Header */}
-      <div className="sticky top-0 bg-gray-950/95 backdrop-blur-lg border-b border-white/10 z-20">
+      <div className="sticky top-0 bg-gray-950/95 backdrop-blur-lg border-b border-white/10 z-20 safe-top">
         <div className="flex items-center gap-3 px-4 py-3">
           <Link to="/" className="p-1">
             <ArrowLeft className="w-5 h-5 text-white" />
@@ -81,7 +81,7 @@ export default function SponsorDirectory() {
       </div>
 
       {/* Content */}
-      <div className="px-4 pt-4">
+      <PullToRefresh onRefresh={loadSponsors} className="px-4 pt-4">
         {loading ? (
           <div className="flex justify-center py-16">
             <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -98,7 +98,7 @@ export default function SponsorDirectory() {
             ))}
           </div>
         )}
-      </div>
+      </PullToRefresh>
 
       <BottomNav />
     </div>
