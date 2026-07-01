@@ -54,6 +54,15 @@ export default function Home() {
     if (filters.is_free === true) query.is_free = true;
     if (filters.is_free === false) query.is_free = false;
 
+    // Narrow down at the database level to a bounding box around the selected city,
+    // so events aren't squeezed out by the global result cap as more cities get synced.
+    if (selectedCity?.latitude && selectedCity?.longitude) {
+      const latDelta = 50 / 69; // ~50 miles in degrees latitude
+      const lngDelta = 50 / (69 * Math.cos(selectedCity.latitude * Math.PI / 180));
+      query.latitude = { $gte: selectedCity.latitude - latDelta, $lte: selectedCity.latitude + latDelta };
+      query.longitude = { $gte: selectedCity.longitude - lngDelta, $lte: selectedCity.longitude + lngDelta };
+    }
+
     const data = await base44.entities.Event.filter(query, "-date_start", 500);
     let filtered = data;
 
@@ -63,7 +72,7 @@ export default function Home() {
       );
     }
 
-    // Filter to events within ~50 miles of selected city
+    // Precise filter to events within exactly 50 miles of selected city
     if (selectedCity?.latitude && selectedCity?.longitude) {
       filtered = filtered.filter(e => {
         if (!e.latitude || !e.longitude) return false;
