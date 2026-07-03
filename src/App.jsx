@@ -27,6 +27,7 @@ const SponsorDirectory = lazy(() => import('./pages/SponsorDirectory'));
 const EventReviewsPage = lazy(() => import('./pages/EventReviewsPage'));
 const BecomeASponsor = lazy(() => import('./pages/BecomeASponsor'));
 const SwitchCity = lazy(() => import('./pages/SwitchCity'));
+const NeighborhoodGuide = lazy(() => import('./pages/NeighborhoodGuide'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -82,6 +83,7 @@ const AuthenticatedApp = () => {
           <Route path="/event-reviews" element={<EventReviewsPage />} />
           <Route path="/become-a-sponsor" element={<BecomeASponsor />} />
           <Route path="/switch-city" element={<SwitchCity />} />
+          <Route path="/neighborhoods" element={<NeighborhoodGuide />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </motion.div>

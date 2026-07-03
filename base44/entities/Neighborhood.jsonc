@@ -1,0 +1,41 @@
+{
+  "name": "Neighborhood",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state_code": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "radius_miles": {
+      "type": "number",
+      "default": 3
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "city",
+    "latitude",
+    "longitude"
+  ]
+}

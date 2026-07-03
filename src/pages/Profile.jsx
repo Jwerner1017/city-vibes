@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import BottomNav from "@/components/BottomNav";
-import { User, Heart, Shield, LogOut, ChevronRight, BarChart3, Store, MessageSquarePlus, Star, MapPin, Trash2 } from "lucide-react";
+import { User, Heart, Shield, LogOut, ChevronRight, BarChart3, Store, MessageSquarePlus, Star, MapPin, Trash2, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserBadges, { computeBadges } from "@/components/UserBadges";
 import { useToast } from "@/components/ui/use-toast";
@@ -158,6 +158,14 @@ export default function Profile() {
             <div className="flex items-center gap-3">
               <MapPin className="w-5 h-5 text-blue-500" />
               <span className="font-semibold text-sm">Switch City</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+
+          <Link to="/neighborhoods" className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <Compass className="w-5 h-5 text-teal-500" />
+              <span className="font-semibold text-sm">Neighborhood Guide</span>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </Link>
