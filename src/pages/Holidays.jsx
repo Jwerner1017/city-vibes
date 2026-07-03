@@ -6,6 +6,15 @@ import EventCard from "@/components/EventCard";
 import PullToRefresh from "@/components/PullToRefresh";
 import { HOLIDAY_CONFIG } from "@/lib/constants";
 import { ChevronRight, ExternalLink } from "lucide-react";
+import { useCity } from "@/lib/CityContext";
+
+const distanceMiles = (lat1, lng1, lat2, lng2) => {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
 const HOLIDAY_HUBS = [
   {
@@ -49,19 +58,23 @@ const HOLIDAY_HUBS = [
 ];
 
 export default function Holidays() {
+  const { selectedCity } = useCity();
   const [holidayEvents, setHolidayEvents] = useState({});
 
   const loadHolidays = useCallback(async () => {
-    const events = await base44.entities.Event.filter({ status: "approved" }, "-date_start", 200);
+    const events = await base44.entities.Event.filter({ status: "approved" }, "-date_start", 500);
+    const nearby = selectedCity?.latitude && selectedCity?.longitude
+      ? events.filter(e => e.latitude && e.longitude && distanceMiles(selectedCity.latitude, selectedCity.longitude, e.latitude, e.longitude) <= 50)
+      : events;
     const grouped = {};
-    events.forEach(e => {
+    nearby.forEach(e => {
       if (e.holiday && e.holiday !== "none") {
         if (!grouped[e.holiday]) grouped[e.holiday] = [];
         grouped[e.holiday].push(e);
       }
     });
     setHolidayEvents(grouped);
-  }, []);
+  }, [selectedCity]);
 
   useEffect(() => { loadHolidays(); }, [loadHolidays]);
 

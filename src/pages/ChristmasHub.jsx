@@ -4,15 +4,30 @@ import { base44 } from "@/api/base44Client";
 import EventCard from "@/components/EventCard";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCity } from "@/lib/CityContext";
+
+const distanceMiles = (lat1, lng1, lat2, lng2) => {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
 export default function ChristmasHub() {
   const navigate = useNavigate();
+  const { selectedCity } = useCity();
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    base44.entities.Event.filter({ status: "approved", holiday: "christmas" }, "-date_start", 50)
-      .then(setEvents);
-  }, []);
+    base44.entities.Event.filter({ status: "approved", holiday: "christmas" }, "-date_start", 200)
+      .then(evs => {
+        const nearby = selectedCity?.latitude && selectedCity?.longitude
+          ? evs.filter(e => e.latitude && e.longitude && distanceMiles(selectedCity.latitude, selectedCity.longitude, e.latitude, e.longitude) <= 50)
+          : evs;
+        setEvents(nearby);
+      });
+  }, [selectedCity]);
 
   return (
     <div className="min-h-screen bg-background pb-8">

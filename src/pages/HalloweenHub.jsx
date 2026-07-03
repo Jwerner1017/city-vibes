@@ -10,6 +10,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
 import { LOUISVILLE_CENTER } from "@/lib/constants";
+import { useCity } from "@/lib/CityContext";
+
+const distanceMiles = (lat1, lng1, lat2, lng2) => {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
 const DECORATION_LEVELS = {
   none: "No Decorations",
@@ -22,6 +31,7 @@ const DECORATION_LEVELS = {
 export default function HalloweenHub() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { selectedCity } = useCity();
   const [events, setEvents] = useState([]);
   const [treatStops, setTreatStops] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -29,28 +39,35 @@ export default function HalloweenHub() {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markerRef = useRef(null);
+  const cityCenter = (selectedCity?.latitude && selectedCity?.longitude) ? [selectedCity.latitude, selectedCity.longitude] : LOUISVILLE_CENTER;
   const [newStop, setNewStop] = useState({
-    address: "", latitude: LOUISVILLE_CENTER[0], longitude: LOUISVILLE_CENTER[1],
+    address: "", latitude: cityCenter[0], longitude: cityCenter[1],
     candy_type: "", decorations: "basic", notes: "", year: new Date().getFullYear(),
   });
 
   useEffect(() => {
     const load = async () => {
       const [evs, stops] = await Promise.all([
-        base44.entities.Event.filter({ status: "approved", holiday: "halloween" }, "-date_start", 50),
+        base44.entities.Event.filter({ status: "approved", holiday: "halloween" }, "-date_start", 200),
         base44.entities.TreatStop.filter({ is_active: true, year: new Date().getFullYear() }, "-created_date", 200),
       ]);
-      setEvents(evs);
-      setTreatStops(stops);
+      const nearbyEvents = selectedCity?.latitude && selectedCity?.longitude
+        ? evs.filter(e => e.latitude && e.longitude && distanceMiles(selectedCity.latitude, selectedCity.longitude, e.latitude, e.longitude) <= 50)
+        : evs;
+      const nearbyStops = selectedCity?.latitude && selectedCity?.longitude
+        ? stops.filter(s => s.latitude && s.longitude && distanceMiles(selectedCity.latitude, selectedCity.longitude, s.latitude, s.longitude) <= 50)
+        : stops;
+      setEvents(nearbyEvents);
+      setTreatStops(nearbyStops);
     };
     load();
-  }, []);
+  }, [selectedCity]);
 
   useEffect(() => {
     if (tab !== "treatmap" || !mapRef.current || mapInstance.current) return;
     const L = window.L;
     if (!L) return;
-    const map = L.map(mapRef.current, { center: LOUISVILLE_CENTER, zoom: 13, zoomControl: false });
+    const map = L.map(mapRef.current, { center: cityCenter, zoom: 13, zoomControl: false });
     L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { maxZoom: 19 }).addTo(map);
     mapInstance.current = map;
     return () => { map.remove(); mapInstance.current = null; };
@@ -85,9 +102,9 @@ export default function HalloweenHub() {
       const el = document.getElementById("add-treat-map");
       if (!el || markerRef.current) return;
       const L = window.L;
-      const miniMap = L.map(el, { center: LOUISVILLE_CENTER, zoom: 14, zoomControl: false });
+      const miniMap = L.map(el, { center: cityCenter, zoom: 14, zoomControl: false });
       L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { maxZoom: 19 }).addTo(miniMap);
-      const marker = L.marker(LOUISVILLE_CENTER, { draggable: true }).addTo(miniMap);
+      const marker = L.marker(cityCenter, { draggable: true }).addTo(miniMap);
       marker.on("dragend", () => {
         const p = marker.getLatLng();
         setNewStop(s => ({ ...s, latitude: p.lat, longitude: p.lng }));
