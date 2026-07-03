@@ -76,25 +76,21 @@ export default function EventMap({ events, sponsors = [], onEventTap, onSponsorT
         lng += radius * Math.sin(angle);
       }
 
+      const size = isSelected ? 20 : 14;
       const icon = L.divIcon({
         className: "event-marker",
         html: `<div style="
-          background: ${isSelected ? cat.color : "white"};
-          color: ${isSelected ? "white" : cat.color};
-          width: ${isSelected ? "42px" : "36px"};
-          height: ${isSelected ? "42px" : "36px"};
+          background: ${cat.color};
+          width: ${size}px;
+          height: ${size}px;
           border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: ${isSelected ? "20px" : "16px"};
-          border: 2.5px solid ${cat.color};
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          border: 2px solid white;
+          box-shadow: 0 1px 6px rgba(0,0,0,0.35)${isSelected ? `, 0 0 0 3px ${cat.color}55` : ""};
           transition: all 0.2s;
           cursor: pointer;
-        ">${cat.emoji}</div>`,
-        iconSize: [isSelected ? 42 : 36, isSelected ? 42 : 36],
-        iconAnchor: [isSelected ? 21 : 18, isSelected ? 21 : 18],
+        "></div>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
       });
 
       const marker = L.marker([lat, lng], { icon }).addTo(map);
