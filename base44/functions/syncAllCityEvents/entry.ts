@@ -16,8 +16,20 @@ async function syncOneCity(base44, city) {
   );
   const existingKeys = new Set(existing.map(e => `${e.title?.toLowerCase().slice(0, 40)}|${e.date_start?.slice(0, 10)}`));
 
+  // Prune events outside the rolling 90-day window (annual holiday events kept)
+  const pruneNow = new Date();
+  const pruneWindowEnd = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+  for (const ev of existing) {
+    if ((ev.holiday || 'none') !== 'none') continue;
+    const d = new Date(ev.date_start);
+    if (d < pruneNow || d > pruneWindowEnd) {
+      try { await base44.asServiceRole.entities.Event.delete(ev.id); } catch (_) {}
+    }
+  }
+
   const today = new Date().toISOString().slice(0, 10);
-  const prompt = `Find 10 real upcoming family-friendly community events in ${cityName}, ${cityState} from ${today} through December 2026.
+  const windowEnd = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const prompt = `Find 10 real upcoming family-friendly community events in ${cityName}, ${cityState} from ${today} through ${windowEnd} (next 90 days only).
 Include festivals, outdoor events, parades, holiday events, farmers markets, arts events, community gatherings, food events, seasonal attractions.
 Return a JSON object with key "events" containing an array. Each event:
 {
@@ -76,13 +88,17 @@ Only include REAL confirmed events. Use ${cityLat}/${cityLng} as fallback coords
 
   const rawEvents = Array.isArray(llmResult) ? llmResult : (llmResult?.events || []);
   const toCreate = [];
+  const windowEndDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+  const nowDate = new Date();
 
   for (const e of rawEvents) {
     if (!e.title || !e.date_start) continue;
-    const key = `${e.title?.toLowerCase().slice(0, 40)}|${e.date_start?.slice(0, 10)}`;
-    if (existingKeys.has(key)) continue;
     const category = VALID_CATEGORIES.includes(e.category) ? e.category : 'other';
     const holiday = VALID_HOLIDAYS.includes(e.holiday) ? e.holiday : 'none';
+    const eventDate = new Date(e.date_start);
+    if (holiday === 'none' && (eventDate < nowDate || eventDate > windowEndDate)) continue;
+    const key = `${e.title?.toLowerCase().slice(0, 40)}|${e.date_start?.slice(0, 10)}`;
+    if (existingKeys.has(key)) continue;
     const lat = (e.latitude && Math.abs(e.latitude) > 0.1) ? e.latitude : cityLat;
     const lng = (e.longitude && Math.abs(e.longitude) > 0.1) ? e.longitude : cityLng;
     toCreate.push({

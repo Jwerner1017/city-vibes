@@ -32,9 +32,11 @@ Deno.serve(async (req) => {
     );
     const existingTitles = new Set(existing.map(e => `${e.title?.toLowerCase().slice(0, 40)}|${e.date_start?.slice(0, 10)}`));
 
-    // Use LLM with internet to find real upcoming family events for this city
+    // Use LLM with internet to find real upcoming family events for this city,
+    // limited to a rolling 90-day window so the data stays current.
     const today = new Date().toISOString().slice(0, 10);
-    const prompt = `Find 10-15 real, upcoming family-friendly community events happening in ${city_name}, ${city_state} from ${today} through end of 2026.
+    const windowEnd = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const prompt = `Find 10-15 real, upcoming family-friendly community events happening in ${city_name}, ${city_state} from ${today} through ${windowEnd} (next 90 days only).
 
 Include festivals, outdoor events, parades, holiday events, farmers markets, arts events, community gatherings, sports events, food events, and seasonal attractions.
 
@@ -104,11 +106,18 @@ Rules:
     });
 
     const rawEvents = Array.isArray(llmResult) ? llmResult : (llmResult?.events || []);
+    const windowEndDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+    const nowDate = new Date();
 
     // Validate and deduplicate
     const toCreate = [];
     for (const e of rawEvents) {
       if (!e.title || !e.date_start) continue;
+
+      // Keep only events within the rolling 90-day window (annual holiday events are exempt)
+      const eventDate = new Date(e.date_start);
+      const holidayVal = VALID_HOLIDAYS.includes(e.holiday) ? e.holiday : 'none';
+      if (holidayVal === 'none' && (eventDate < nowDate || eventDate > windowEndDate)) continue;
 
       const key = `${e.title?.toLowerCase().slice(0, 40)}|${e.date_start?.slice(0, 10)}`;
       if (existingTitles.has(key)) continue;
