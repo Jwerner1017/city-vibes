@@ -44,7 +44,7 @@ const TIERS = [
   },
 ];
 
-const TERMS = `LOCAL VIBES BUSINESS SPONSOR TERMS & CONDITIONS
+const TERMS = `CITY VIBES BUSINESS SPONSOR TERMS & CONDITIONS
 
 Last Updated: June 2026
 
@@ -52,28 +52,28 @@ Last Updated: June 2026
 Sponsors must be a legally registered business operating in the featured city. By submitting an application, you confirm your business is in good standing.
 
 2. CONTENT STANDARDS
-All sponsor content (logos, photos, descriptions, discounts) must be accurate, family-appropriate, and not misleading. Local Vibes reserves the right to edit or reject any content that does not meet community standards.
+All sponsor content (logos, photos, descriptions, discounts) must be accurate, family-appropriate, and not misleading. City Vibes reserves the right to edit or reject any content that does not meet community standards.
 
 3. DISCOUNT AUTHENTICITY
 Any discounts or promotions listed must be genuine offers available to app users. Sponsors agree to honor all published discounts for the stated duration.
 
 4. APPROVAL PROCESS
-Sponsor listings are subject to review and approval by the Local Vibes team. Approval is not guaranteed. We reserve the right to decline any application without explanation.
+Sponsor listings are subject to review and approval by the City Vibes team. Approval is not guaranteed. We reserve the right to decline any application without explanation.
 
 5. BILLING & CANCELLATION
 Sponsorship is billed monthly. You may cancel at any time with 7 days' notice before the next billing cycle. No partial refunds are issued for unused days.
 
 6. INTELLECTUAL PROPERTY
-You retain ownership of your submitted content. By submitting, you grant Local Vibes a non-exclusive license to display your content within the application.
+You retain ownership of your submitted content. By submitting, you grant City Vibes a non-exclusive license to display your content within the application.
 
 7. CONDUCT
 Sponsors found to be providing false information or engaging in deceptive practices will be immediately removed without refund and may be banned from future participation.
 
 8. CHANGES TO TERMS
-Local Vibes may update these terms at any time. Continued participation after changes constitutes acceptance of the new terms.
+City Vibes may update these terms at any time. Continued participation after changes constitutes acceptance of the new terms.
 
 9. CONTACT
-For questions regarding sponsorship, contact: sponsors@localvibes.app`;
+For questions regarding sponsorship, contact: sponsors@cityvibes.app`;
 
 const STEPS = ["Tiers", "Terms", "Application", "Confirm"];
 
@@ -398,7 +398,7 @@ export default function BecomeSponsorModal({ onClose }) {
                     className="mt-0.5 w-4 h-4 accent-primary flex-shrink-0"
                   />
                   <span className="text-white/70 text-xs leading-relaxed">
-                    I have read and agree to the Local Vibes{" "}
+                    I have read and agree to the City Vibes{" "}
                     <span className="text-primary underline cursor-pointer" onClick={() => setStep(1)}>Sponsor Terms & Conditions</span>.
                     I confirm all provided information is accurate and that my business will honor any listed discounts.
                   </span>

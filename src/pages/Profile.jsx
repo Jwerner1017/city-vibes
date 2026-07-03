@@ -77,7 +77,7 @@ export default function Profile() {
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="font-heading font-black text-xl text-white">
-              {user?.full_name || "Local Viber"}
+              {user?.full_name || "City Viber"}
             </h1>
             <p className="text-white/70 text-xs mb-1.5">{user?.email}</p>
             <UserBadges badges={badges} size="sm" />
@@ -128,7 +128,7 @@ export default function Profile() {
           <div className="bg-gradient-to-r from-orange-400 to-orange-600 rounded-2xl p-4 text-white shadow-lg shadow-orange-500/20">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-heading font-bold text-base">❤️ Support Local Vibes</h3>
+                <h3 className="font-heading font-bold text-base">❤️ Support City Vibes</h3>
                 <p className="text-white/80 text-xs mt-0.5">Help us keep Louisville connected</p>
               </div>
               <ChevronRight className="w-5 h-5 text-white/70" />

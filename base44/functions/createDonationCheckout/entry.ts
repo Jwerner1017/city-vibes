@@ -23,8 +23,8 @@ Deno.serve(async (req) => {
         type,
         tier_name: tier_name || 'One-time',
       },
-      success_url: success_url || 'https://localvibes.app/donate?success=true',
-      cancel_url: cancel_url || 'https://localvibes.app/donate',
+      success_url: success_url || 'https://cityvibes.app/donate?success=true',
+      cancel_url: cancel_url || 'https://cityvibes.app/donate',
     };
 
     if (type === 'monthly') {
@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
         unit_amount: amountInCents,
         recurring: { interval: 'month' },
         product_data: {
-          name: `Local Vibes ${tier_name || 'Monthly'} Support`,
+          name: `City Vibes ${tier_name || 'Monthly'} Support`,
         },
       });
 
@@ -48,8 +48,8 @@ Deno.serve(async (req) => {
           currency: 'usd',
           unit_amount: amountInCents,
           product_data: {
-            name: 'Local Vibes Community Support',
-            description: 'One-time donation to keep Local Vibes running',
+            name: 'City Vibes Community Support',
+            description: 'One-time donation to keep City Vibes running',
           },
         },
         quantity: 1,

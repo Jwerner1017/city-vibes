@@ -136,7 +136,7 @@ export default function Donate() {
           </div>
           <h1 className="font-heading font-black text-3xl mb-2">You're a Legend! 🎉</h1>
           <p className="text-muted-foreground mb-2 leading-relaxed">
-            Your generosity directly fuels the features, updates, and infrastructure that keep Local Vibes alive and thriving.
+            Your generosity directly fuels the features, updates, and infrastructure that keep City Vibes alive and thriving.
           </p>
           <p className="text-sm text-muted-foreground mb-7">
             We'll put every dollar to work — promise.
@@ -146,7 +146,7 @@ export default function Donate() {
             <span className="font-bold text-sm text-yellow-800">Supporter badge unlocked!</span>
           </div>
           <Button onClick={() => navigate("/")} className="rounded-full px-10 h-12 font-heading font-bold text-base shadow-lg shadow-primary/20">
-            Back to Local Vibes
+            Back to City Vibes
           </Button>
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function Donate() {
           </div>
 
           <h1 className="font-heading font-black text-3xl text-white mb-3">
-            Support Local Vibes
+            Support City Vibes
           </h1>
 
           {/* Mission Statement */}
@@ -182,7 +182,7 @@ export default function Donate() {
             Your city deserves to stay connected.
           </p>
           <p className="text-white/65 text-sm leading-relaxed max-w-sm mx-auto">
-            Local Vibes is 100% community-funded. Every donation goes directly toward new features, city expansions, server costs, and keeping this platform free for every family — no paywalls, no ads, no catches.
+            City Vibes is 100% community-funded. Every donation goes directly toward new features, city expansions, server costs, and keeping this platform free for every family — no paywalls, no ads, no catches.
           </p>
 
           {/* Impact stats */}
@@ -332,7 +332,7 @@ export default function Donate() {
             Where does my money go? 🤔
           </p>
           <p className="text-white/65 text-xs leading-relaxed">
-            100% of contributions fund platform hosting, new city coverage, feature development, and keeping Local Vibes completely free for every community. We publish transparent updates so you always know your impact.
+            100% of contributions fund platform hosting, new city coverage, feature development, and keeping City Vibes completely free for every community. We publish transparent updates so you always know your impact.
           </p>
         </div>
       </div>
