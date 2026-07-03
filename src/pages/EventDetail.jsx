@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { CATEGORY_CONFIG, HOLIDAY_CONFIG } from "@/lib/constants";
-import { ArrowLeft, MapPin, Clock, Users, Heart, Share2, ExternalLink, Calendar, CalendarPlus } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Users, Heart, Share2, ExternalLink, Calendar, CalendarPlus, MessageCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
@@ -126,6 +126,18 @@ export default function EventDetail() {
   const handleShareInstagram = () => {
     navigator.clipboard.writeText(window.location.href);
     toast({ title: "Link copied! 📋", description: "Open Instagram and paste the link in your story or bio." });
+  };
+
+  const handleShareText = () => {
+    const url = window.location.href;
+    window.location.href = `sms:?&body=${encodeURIComponent(`${event.title} - ${url}`)}`;
+  };
+
+  const handleShareEmail = () => {
+    const url = window.location.href;
+    const subject = encodeURIComponent(event.title);
+    const body = encodeURIComponent(`Check out this event: ${event.title}\n${url}`);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
   if (loading) {
@@ -309,6 +321,20 @@ export default function EventDetail() {
         {/* Social sharing */}
         <div className="mt-4 pt-4 border-t border-border">
           <p className="text-xs font-semibold text-muted-foreground mb-3 text-center">Share with friends & family</p>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <button
+              onClick={handleShareText}
+              className="flex items-center justify-center gap-2 h-11 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary font-semibold text-sm transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" /> Text
+            </button>
+            <button
+              onClick={handleShareEmail}
+              className="flex items-center justify-center gap-2 h-11 rounded-full border border-secondary/30 bg-secondary/5 hover:bg-secondary/10 text-secondary font-semibold text-sm transition-colors"
+            >
+              <Mail className="w-4 h-4" /> Email
+            </button>
+          </div>
           <div className="flex gap-3">
             <button
               onClick={handleShareFacebook}
