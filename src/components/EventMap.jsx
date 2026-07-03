@@ -48,10 +48,31 @@ export default function EventMap({ events, sponsors = [], onEventTap, onSponsorT
     markersRef.current.forEach(m => map.removeLayer(m));
     markersRef.current = [];
 
+    // Spread out events that share (nearly) the same coordinates so they don't
+    // stack into a single invisible marker on the map.
+    const coordGroups = {};
+    events.forEach(event => {
+      if (!event.latitude || !event.longitude) return;
+      const key = `${event.latitude.toFixed(3)},${event.longitude.toFixed(3)}`;
+      (coordGroups[key] = coordGroups[key] || []).push(event);
+    });
+
     events.forEach(event => {
       if (!event.latitude || !event.longitude) return;
       const cat = CATEGORY_CONFIG[event.category] || CATEGORY_CONFIG.other;
       const isSelected = event.id === selectedId;
+
+      const key = `${event.latitude.toFixed(3)},${event.longitude.toFixed(3)}`;
+      const group = coordGroups[key];
+      let lat = event.latitude;
+      let lng = event.longitude;
+      if (group.length > 1) {
+        const idx = group.findIndex(e => e.id === event.id);
+        const angle = (2 * Math.PI * idx) / group.length;
+        const radius = 0.0009 * Math.min(1 + Math.floor(idx / 8), 3); // small offset, grows in rings
+        lat += radius * Math.cos(angle);
+        lng += radius * Math.sin(angle);
+      }
 
       const icon = L.divIcon({
         className: "event-marker",
@@ -74,7 +95,7 @@ export default function EventMap({ events, sponsors = [], onEventTap, onSponsorT
         iconAnchor: [isSelected ? 21 : 18, isSelected ? 21 : 18],
       });
 
-      const marker = L.marker([event.latitude, event.longitude], { icon }).addTo(map);
+      const marker = L.marker([lat, lng], { icon }).addTo(map);
       marker.on("click", () => onEventTap?.(event));
       markersRef.current.push(marker);
     });

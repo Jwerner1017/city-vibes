@@ -7,10 +7,20 @@ export default function PullToRefresh({ onRefresh, children, className = "" }) {
   const pulling = useRef(false);
   const containerRef = useRef(null);
 
+  // Only this element's own scroll counts as "at top" — if it isn't actually
+  // scrollable (page/body handles scrolling instead), skip pull-to-refresh
+  // entirely so touch gestures pass straight through to native scrolling.
+  const isSelfScrollable = () => {
+    const el = containerRef.current;
+    return el && el.scrollHeight > el.clientHeight + 1;
+  };
+
   const handleTouchStart = (e) => {
-    if (containerRef.current && containerRef.current.scrollTop <= 0) {
+    if (isSelfScrollable() && containerRef.current.scrollTop <= 0) {
       startY.current = e.touches[0].clientY;
       pulling.current = true;
+    } else {
+      pulling.current = false;
     }
   };
 
