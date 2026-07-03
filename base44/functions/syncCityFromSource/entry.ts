@@ -201,9 +201,9 @@ async function fetchSocrata(domain: string, datasetId: string, cityLat: number, 
 async function fetchViaLLM(base44: any, city: any) {
   const { name, state_code, latitude, longitude } = city;
   const today = new Date().toISOString().slice(0, 10);
-  const windowEnd = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const windowEnd = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
-    prompt: `Find 10 real upcoming family-friendly community events in ${name}, ${state_code} from ${today} through ${windowEnd} (next 90 days only).
+    prompt: `Find 10 real upcoming family-friendly community events in ${name}, ${state_code} from ${today} through ${windowEnd} (next 120 days only).
 Include festivals, outdoor, parades, holiday, farmers markets, arts, community, food, seasonal attractions.
 Return JSON object with key "events". Each event:
 { title, description (2-3 sentences), date_start (YYYY-MM-DDTHH:MM:SS), date_end, location_name, address (full, ${name} ${state_code}), latitude (venue), longitude (venue), category (festival/outdoor/sports/arts/music/food/holiday/community/education/attraction/parade/fireworks/other), holiday (none/july_4th/halloween/christmas/easter/st_patricks/thanksgiving/new_years/valentines/memorial_day/labor_day), is_free (bool), price_info, age_min:0, age_max:18, website_url }
@@ -278,10 +278,10 @@ Deno.serve(async (req) => {
 
     if (!city) return Response.json({ error: 'City not found' }, { status: 404 });
 
-    // Prune events outside the rolling 90-day window for this city (annual holiday events kept)
+    // Prune events outside the rolling 120-day window for this city (annual holiday events kept)
     try {
       const nowDate = new Date();
-      const windowEndDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+      const windowEndDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
       const cityEvents = await base44.asServiceRole.entities.Event.filter(
         { address: { $regex: city.name, $options: 'i' } }, '-date_start', 300
       );
@@ -348,9 +348,9 @@ Deno.serve(async (req) => {
       console.log(`[${cityKey}] LLM returned ${rawEvents.length} events`);
     }
 
-    // Deduplicate & normalize, keeping only events within the rolling 90-day window
+    // Deduplicate & normalize, keeping only events within the rolling 120-day window
     // (annual holiday events are exempt from the window)
-    const windowEndDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+    const windowEndDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
     const nowDate = new Date();
     const toCreate = [];
     for (const e of rawEvents) {

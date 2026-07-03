@@ -7,7 +7,11 @@ import moment from "moment";
 
 export default function EventCard({ event, compact = false }) {
   const cat = CATEGORY_CONFIG[event.category] || CATEGORY_CONFIG.other;
-  const dateStr = moment(event.date_start).format("MMM D");
+  const rangeEnd = event.range_end || event.date_end;
+  const isRange = event.is_running_event && rangeEnd && moment(rangeEnd).format("YYYY-MM-DD") !== moment(event.date_start).format("YYYY-MM-DD");
+  const dateStr = isRange
+    ? `${moment(event.date_start).format("MMM D")} – ${moment(rangeEnd).format("MMM D")}`
+    : moment(event.date_start).format("MMM D");
   const timeStr = moment(event.date_start).format("h:mm A");
   const photo = event.photos?.[0];
 

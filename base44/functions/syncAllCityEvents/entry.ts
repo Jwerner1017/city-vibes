@@ -16,9 +16,9 @@ async function syncOneCity(base44, city) {
   );
   const existingKeys = new Set(existing.map(e => `${e.title?.toLowerCase().slice(0, 40)}|${e.date_start?.slice(0, 10)}`));
 
-  // Prune events outside the rolling 90-day window (annual holiday events kept)
+  // Prune events outside the rolling 120-day window (annual holiday events kept)
   const pruneNow = new Date();
-  const pruneWindowEnd = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+  const pruneWindowEnd = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
   for (const ev of existing) {
     if ((ev.holiday || 'none') !== 'none') continue;
     const d = new Date(ev.date_start);
@@ -28,8 +28,8 @@ async function syncOneCity(base44, city) {
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  const windowEnd = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const prompt = `Find 10 real upcoming family-friendly community events in ${cityName}, ${cityState} from ${today} through ${windowEnd} (next 90 days only).
+  const windowEnd = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const prompt = `Find 10 real upcoming family-friendly community events in ${cityName}, ${cityState} from ${today} through ${windowEnd} (next 120 days only).
 Include festivals, outdoor events, parades, holiday events, farmers markets, arts events, community gatherings, food events, seasonal attractions.
 Return a JSON object with key "events" containing an array. Each event:
 {
@@ -88,7 +88,7 @@ Only include REAL confirmed events. Use ${cityLat}/${cityLng} as fallback coords
 
   const rawEvents = Array.isArray(llmResult) ? llmResult : (llmResult?.events || []);
   const toCreate = [];
-  const windowEndDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+  const windowEndDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
   const nowDate = new Date();
 
   for (const e of rawEvents) {

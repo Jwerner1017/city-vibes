@@ -11,6 +11,7 @@ import moment from "moment";
 import CitySelector from "@/components/CitySelector";
 import { useCity } from "@/lib/CityContext";
 import PullToRefresh from "@/components/PullToRefresh";
+import { groupRunningEvents, eventsOnDate } from "@/lib/eventUtils";
 
 const VIEW_TABS = [
   { id: "map", icon: Map, label: "Map" },
@@ -84,6 +85,9 @@ export default function Home() {
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
+  // Collapse the same event repeated on consecutive days into a single date-range event
+  const groupedEvents = React.useMemo(() => groupRunningEvents(events), [events]);
+
   // Load sponsors near selected city
   useEffect(() => {
     const loadSponsors = async () => {
@@ -109,10 +113,10 @@ export default function Home() {
   const daysInMonth = currentMonth.daysInMonth();
   const startDay = moment(currentMonth).startOf("month").day();
   const today = moment().format("YYYY-MM-DD");
-  const getEventsForDate = (dateStr) => events.filter(e => moment(e.date_start).format("YYYY-MM-DD") === dateStr);
+  const getEventsForDate = (dateStr) => eventsOnDate(groupedEvents, dateStr);
   const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
-  const upcomingEvents = events
-    .filter(e => moment(e.date_start).isSameOrAfter(moment(), "day"))
+  const upcomingEvents = groupedEvents
+    .filter(e => moment(e.range_end || e.date_end || e.date_start).isSameOrAfter(moment(), "day"))
     .sort((a, b) => new Date(a.date_start) - new Date(b.date_start));
 
   return (
@@ -158,7 +162,7 @@ export default function Home() {
             {viewMode === "map" && (
               <div className="absolute inset-0">
                 <EventMap
-                  events={events}
+                  events={groupedEvents}
                   sponsors={showSponsors ? sponsors : []}
                   selectedId={selectedEvent?.id}
                   selectedSponsorId={selectedSponsor?.id}
