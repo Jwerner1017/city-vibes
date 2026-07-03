@@ -123,7 +123,7 @@ export default function Profile() {
           )}
         </div>
 
-        {/* Support Local Vibes */}
+        {/* Support City Vibes */}
         <Link to="/donate" className="block">
           <div className="bg-gradient-to-r from-orange-400 to-orange-600 rounded-2xl p-4 text-white shadow-lg shadow-orange-500/20">
             <div className="flex items-center justify-between">
