@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CATEGORY_CONFIG } from "@/lib/constants";
+import moment from "moment";
 
 const TIER_COLORS = { platinum: "#e5e4e2", gold: "#FFD700", silver: "#C0C0C0", bronze: "#CD7F32" };
 
@@ -48,12 +49,13 @@ export default function EventMap({ events, sponsors = [], onEventTap, onSponsorT
     markersRef.current.forEach(m => map.removeLayer(m));
     markersRef.current = [];
 
-    // Spread out events that share (nearly) the same coordinates so they don't
-    // stack into a single invisible marker on the map.
+    // Only nudge markers apart when coordinates are IDENTICAL down to ~11m —
+    // real distinct venue coordinates are always used as-is, unmodified, so
+    // each marker stays truly linked to its event's actual lat/lng.
     const coordGroups = {};
     events.forEach(event => {
       if (!event.latitude || !event.longitude) return;
-      const key = `${event.latitude.toFixed(3)},${event.longitude.toFixed(3)}`;
+      const key = `${event.latitude.toFixed(4)},${event.longitude.toFixed(4)}`;
       (coordGroups[key] = coordGroups[key] || []).push(event);
     });
 
@@ -62,14 +64,14 @@ export default function EventMap({ events, sponsors = [], onEventTap, onSponsorT
       const cat = CATEGORY_CONFIG[event.category] || CATEGORY_CONFIG.other;
       const isSelected = event.id === selectedId;
 
-      const key = `${event.latitude.toFixed(3)},${event.longitude.toFixed(3)}`;
+      const key = `${event.latitude.toFixed(4)},${event.longitude.toFixed(4)}`;
       const group = coordGroups[key];
       let lat = event.latitude;
       let lng = event.longitude;
       if (group.length > 1) {
         const idx = group.findIndex(e => e.id === event.id);
         const angle = (2 * Math.PI * idx) / group.length;
-        const radius = 0.0009 * Math.min(1 + Math.floor(idx / 8), 3); // small offset, grows in rings
+        const radius = 0.0004 * Math.min(1 + Math.floor(idx / 8), 3); // tiny offset, only for exact dupes
         lat += radius * Math.cos(angle);
         lng += radius * Math.sin(angle);
       }
@@ -96,6 +98,19 @@ export default function EventMap({ events, sponsors = [], onEventTap, onSponsorT
       });
 
       const marker = L.marker([lat, lng], { icon }).addTo(map);
+      // Bind the event's own address/venue + exact time so its map position
+      // is always verifiably linked to real coordinates and address.
+      const timeStr = event.date_start ? moment(event.date_start).format("MMM D, h:mm A") : "";
+      const addressLine = event.address || event.location_name || "";
+      marker.bindPopup(
+        `<div style="min-width:160px">
+          <div style="font-weight:700;font-size:13px;margin-bottom:2px;">${event.title || ""}</div>
+          ${timeStr ? `<div style="font-size:11px;color:#555;">${timeStr}</div>` : ""}
+          ${addressLine ? `<div style="font-size:11px;color:#555;">${addressLine}</div>` : ""}
+          <div style="font-size:10px;color:#999;margin-top:2px;">${event.latitude.toFixed(5)}, ${event.longitude.toFixed(5)}</div>
+        </div>`,
+        { closeButton: false }
+      );
       marker.on("click", () => onEventTap?.(event));
       markersRef.current.push(marker);
     });
