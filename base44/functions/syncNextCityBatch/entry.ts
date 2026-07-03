@@ -5,7 +5,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 // which tries RSS → Socrata → LLM for each city.
 // Batch state (which city index we're on) is persisted in the DB.
 
-const BATCH_SIZE = 2;
+const BATCH_SIZE = 3;
 
 // Delegate to syncCityFromSource (RSS → Socrata → LLM pipeline)
 async function syncOneCity(base44, city) {
