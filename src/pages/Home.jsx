@@ -4,10 +4,8 @@ import EventMap from "@/components/EventMap";
 import EventCard from "@/components/EventCard";
 import FilterBar from "@/components/FilterBar";
 import BottomNav from "@/components/BottomNav";
-import CreateEventFAB from "@/components/CreateEventFAB";
 import SponsorCard from "@/components/SponsorCard";
-import BecomeSponsorModal from "@/components/BecomeSponsorModal";
-import { Map, CalendarDays, List, ChevronLeft, ChevronRight, X, Store, Star } from "lucide-react";
+import { Map, CalendarDays, List, ChevronLeft, ChevronRight, X, Store } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import moment from "moment";
 import CitySelector from "@/components/CitySelector";
@@ -32,7 +30,6 @@ export default function Home() {
   const [sponsors, setSponsors] = useState([]);
   const [showSponsors, setShowSponsors] = useState(true);
   const [selectedSponsor, setSelectedSponsor] = useState(null);
-  const [showSponsorModal, setShowSponsorModal] = useState(false);
 
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(moment());
@@ -184,14 +181,6 @@ export default function Home() {
                     <Store className="w-3.5 h-3.5" />
                     {showSponsors ? `${sponsors.length} Sponsors` : "Sponsors Off"}
                   </button>
-
-                  <button
-                    onClick={() => setShowSponsorModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold shadow-lg bg-gradient-to-r from-primary to-accent text-white"
-                  >
-                    <Star className="w-3.5 h-3.5" />
-                    Become a Sponsor
-                  </button>
                 </div>
 
                 {/* Selected event card */}
@@ -338,15 +327,7 @@ export default function Home() {
         )}
       </div>
 
-      <CreateEventFAB />
       <BottomNav />
-
-      {/* Become a Sponsor modal */}
-      <AnimatePresence>
-        {showSponsorModal && (
-          <BecomeSponsorModal onClose={() => setShowSponsorModal(false)} />
-        )}
-      </AnimatePresence>
     </div>
   );
 }
