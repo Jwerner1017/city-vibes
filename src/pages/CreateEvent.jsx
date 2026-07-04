@@ -149,7 +149,20 @@ export default function CreateEvent() {
             <Input
               type="datetime-local"
               value={form.date_start}
-              onChange={e => update("date_start", e.target.value)}
+              onChange={e => {
+                const value = e.target.value;
+                setForm(f => {
+                  // Auto-suggest a 2-hour end time so users don't have to re-pick AM/PM manually
+                  if (!f.date_end && value) {
+                    const start = new Date(value);
+                    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+                    const pad = (n) => String(n).padStart(2, "0");
+                    const suggestedEnd = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}T${pad(end.getHours())}:${pad(end.getMinutes())}`;
+                    return { ...f, date_start: value, date_end: suggestedEnd };
+                  }
+                  return { ...f, date_start: value };
+                });
+              }}
               className="mt-1.5 h-12 rounded-xl"
             />
           </div>
@@ -325,13 +338,19 @@ export default function CreateEvent() {
           />
         </div>
 
-        <Button
-          onClick={handleSubmit}
-          disabled={submitting}
-          className="w-full h-14 rounded-full font-heading font-bold text-lg shadow-lg shadow-primary/20"
-        >
-          {submitting ? "Posting..." : "Submit Event 🎉"}
-        </Button>
+      </div>
+
+      {/* Sticky submit bar so it's always reachable without scrolling to the bottom */}
+      <div className="sticky bottom-0 mt-6 bg-white/95 backdrop-blur-lg border-t border-border px-4 py-3 safe-bottom">
+        <div className="max-w-lg mx-auto">
+          <Button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="w-full h-14 rounded-full font-heading font-bold text-lg shadow-lg shadow-primary/20"
+          >
+            {submitting ? "Posting..." : "Submit Event 🎉"}
+          </Button>
+        </div>
       </div>
     </div>
   );
