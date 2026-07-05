@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import BottomNav from "@/components/BottomNav";
-import { User, Heart, Shield, LogOut, ChevronRight, BarChart3, Store, MessageSquarePlus, Star, MapPin, Trash2, Compass, Plus } from "lucide-react";
+import { User, Heart, Shield, LogOut, ChevronRight, BarChart3, Store, MessageSquarePlus, Star, MapPin, Trash2, Compass, Plus, Info, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserBadges, { computeBadges } from "@/components/UserBadges";
 import { useToast } from "@/components/ui/use-toast";
@@ -211,6 +211,22 @@ export default function Profile() {
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </Link>
           )}
+
+          <Link to="/about" className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <Info className="w-5 h-5 text-muted-foreground" />
+              <span className="font-semibold text-sm">About</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+
+          <Link to="/contact" className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <Mail className="w-5 h-5 text-muted-foreground" />
+              <span className="font-semibold text-sm">Contact</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
         </div>
 
         <Button
