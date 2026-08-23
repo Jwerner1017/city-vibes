@@ -4,12 +4,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 const VALID_CATEGORIES = ["festival","outdoor","sports","arts","music","food","holiday","community","education","attraction","trick_or_treat","fireworks","santa","easter","parade","other"];
 const VALID_HOLIDAYS   = ["none","july_4th","halloween","christmas","easter","st_patricks","thanksgiving","new_years","valentines","memorial_day","labor_day"];
 
-// ─── City → RSS / Open-Data source map ──────────────────────────────────────
-// Each entry can have:
-//   rss_url   → XML RSS feed URL
-//   socrata   → { domain, dataset_id } for Socrata Open Data (many city govs)
-//   json_url  → direct JSON events endpoint
-//   fallback  → true = LLM web-search only
+// Expanded + documented city source map
+// Prefer real structured feeds (RSS / Socrata) over pure LLM whenever possible.
 const CITY_SOURCES: Record<string, any> = {
   "Louisville,KY": {
     rss_url: "https://www.gotolouisville.com/rss/events/",
@@ -28,6 +24,7 @@ const CITY_SOURCES: Record<string, any> = {
     fallback: true,
     lat: 39.9526, lng: -75.1652,
   },
+  // Remaining cities currently rely on LLM until better structured feeds are added
   "Houston,TX":        { fallback: true, lat: 29.7604, lng: -95.3698 },
   "Phoenix,AZ":        { fallback: true, lat: 33.4484, lng: -112.0740 },
   "San Antonio,TX":    { fallback: true, lat: 29.4241, lng: -98.4936 },
@@ -69,10 +66,19 @@ const CITY_SOURCES: Record<string, any> = {
   "Richmond,VA":       { fallback: true, lat: 37.5407, lng: -77.4360 },
 };
 
+// Normalize title for better deduplication
+function normalizeTitle(title: string): string {
+  return (title || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 60);
+}
+
 // ─── Parse RSS XML into event records ───────────────────────────────────────
 function parseRSS(xml: string, cityName: string, cityState: string, cityLat: number, cityLng: number) {
   const events: any[] = [];
-  // Extract <item> blocks
   const itemRegex = /<item>([\s\S]*?)<\/item>/g;
   let match;
   while ((match = itemRegex.exec(xml)) !== null) {
@@ -81,17 +87,29 @@ function parseRSS(xml: string, cityName: string, cityState: string, cityLat: num
       const m = item.match(new RegExp(`<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`));
       return m ? m[1].trim() : '';
     };
-    const title = getField('title').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    const description = getField('description').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').substring(0, 500);
+
+    const title = getField('title')
+      .replace(/&/g, '&')
+      .replace(/"/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/</g, '<')
+      .replace(/>/g, '>');
+
+    let description = getField('description')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&/g, '&')
+      .replace(/"/g, '"')
+      .substring(0, 500);
+
     const link = getField('link');
-    const pubDate = getField('pubDate');
+    // Prefer explicit event date fields when present; fall back to pubDate
+    const rawDate = getField('startdate') || getField('event:startdate') || getField('dc:date') || getField('pubDate');
 
     if (!title || title === 'CRM Import') continue;
 
-    // Parse the pub date
     let dateStart: Date;
     try {
-      dateStart = pubDate ? new Date(pubDate) : new Date();
+      dateStart = rawDate ? new Date(rawDate) : new Date();
     } catch {
       dateStart = new Date();
     }
@@ -99,7 +117,6 @@ function parseRSS(xml: string, cityName: string, cityState: string, cityLat: num
     // Skip past events
     if (dateStart < new Date()) continue;
 
-    // Infer category from title/description
     const lower = (title + ' ' + description).toLowerCase();
     let category = 'community';
     if (lower.includes('festival') || lower.includes('fair')) category = 'festival';
@@ -148,6 +165,7 @@ function parseRSS(xml: string, cityName: string, cityState: string, cityLat: num
       going_count: 0,
       save_count: 0,
       featured: false,
+      source: 'rss',
     });
   }
   return events;
@@ -162,7 +180,7 @@ async function fetchSocrata(domain: string, datasetId: string, cityLat: number, 
   const data = await res.json();
 
   return data.map((e: any) => {
-    const title = (e.event_name || e.name || e.title || 'Community Event').replace(/&amp;/g, '&');
+    const title = (e.event_name || e.name || e.title || 'Community Event').replace(/&/g, '&');
     const lower = title.toLowerCase();
     let category = 'community';
     if (lower.includes('festival')) category = 'festival';
@@ -171,6 +189,7 @@ async function fetchSocrata(domain: string, datasetId: string, cityLat: number, 
     else if (lower.includes('art')) category = 'arts';
     else if (lower.includes('food')) category = 'food';
     else if (lower.includes('sport') || lower.includes('race')) category = 'sports';
+
     return {
       title,
       description: (e.event_description || e.description || `${title} in ${cityName}`).substring(0, 500),
@@ -193,6 +212,7 @@ async function fetchSocrata(domain: string, datasetId: string, cityLat: number, 
       going_count: 0,
       save_count: 0,
       featured: false,
+      source: 'socrata',
     };
   }).filter((e: any) => e.title && new Date(e.date_start) > new Date());
 }
@@ -246,6 +266,7 @@ Real confirmed events only. Fallback coords: ${latitude},${longitude}.`,
     going_count: 0,
     save_count: 0,
     featured: false,
+    source: 'llm',
   }));
 }
 
@@ -278,7 +299,7 @@ Deno.serve(async (req) => {
 
     if (!city) return Response.json({ error: 'City not found' }, { status: 404 });
 
-    // Prune events outside the rolling 120-day window for this city (annual holiday events kept)
+    // Prune events outside the rolling 120-day window (keep holiday events)
     try {
       const nowDate = new Date();
       const windowEndDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
@@ -290,7 +311,9 @@ Deno.serve(async (req) => {
         if (holidayVal !== 'none') continue;
         const d = new Date(ev.date_start);
         if (d < nowDate || d > windowEndDate) {
-          await base44.asServiceRole.entities.Event.delete(ev.id);
+          try {
+            await base44.asServiceRole.entities.Event.delete(ev.id);
+          } catch (_) {}
         }
       }
     } catch (pruneErr) {
@@ -302,33 +325,40 @@ Deno.serve(async (req) => {
     const cityLat = source.lat || city.latitude;
     const cityLng = source.lng || city.longitude;
 
-    // Get existing events to deduplicate
+    // Stronger deduplication key: normalized title + date + optional URL
     const existing = await base44.asServiceRole.entities.Event.filter(
       { address: { $regex: city.name, $options: 'i' } },
-      '-date_start', 100
+      '-date_start', 150
     );
     const existingKeys = new Set(
-      existing.map((e: any) => `${e.title?.toLowerCase().slice(0, 40)}|${e.date_start?.slice(0, 10)}`)
+      existing.map((e: any) => {
+        const norm = normalizeTitle(e.title);
+        const day = e.date_start?.slice(0, 10) || '';
+        const urlPart = e.website_url ? `|${e.website_url}` : '';
+        return `${norm}|${day}${urlPart}`;
+      })
     );
 
     let rawEvents: any[] = [];
     let sourceUsed = 'llm';
 
-    // ── 1. Try RSS feed ──
+    // 1. RSS
     if (source.rss_url) {
       try {
         console.log(`[${cityKey}] Fetching RSS: ${source.rss_url}`);
-        const res = await fetch(source.rss_url, { headers: { 'User-Agent': 'LocalVibes/1.0' } });
-        const xml = await res.text();
-        rawEvents = parseRSS(xml, city.name, city.state_code, cityLat, cityLng);
-        sourceUsed = 'rss';
-        console.log(`[${cityKey}] RSS returned ${rawEvents.length} future events`);
+        const res = await fetch(source.rss_url, { headers: { 'User-Agent': 'CityVibes/1.0' } });
+        if (res.ok) {
+          const xml = await res.text();
+          rawEvents = parseRSS(xml, city.name, city.state_code, cityLat, cityLng);
+          sourceUsed = 'rss';
+          console.log(`[${cityKey}] RSS returned ${rawEvents.length} future events`);
+        }
       } catch (err) {
-        console.warn(`[${cityKey}] RSS failed: ${err.message}, falling back to LLM`);
+        console.warn(`[${cityKey}] RSS failed: ${err.message}`);
       }
     }
 
-    // ── 2. Try Socrata Open Data API ──
+    // 2. Socrata
     if (rawEvents.length === 0 && source.socrata) {
       try {
         console.log(`[${cityKey}] Fetching Socrata: ${source.socrata.domain}/${source.socrata.dataset_id}`);
@@ -336,11 +366,11 @@ Deno.serve(async (req) => {
         sourceUsed = 'socrata';
         console.log(`[${cityKey}] Socrata returned ${rawEvents.length} events`);
       } catch (err) {
-        console.warn(`[${cityKey}] Socrata failed: ${err.message}, falling back to LLM`);
+        console.warn(`[${cityKey}] Socrata failed: ${err.message}`);
       }
     }
 
-    // ── 3. LLM fallback (always works) ──
+    // 3. LLM fallback
     if (rawEvents.length === 0) {
       console.log(`[${cityKey}] Using LLM web-search fallback`);
       rawEvents = await fetchViaLLM(base44, { ...city, latitude: cityLat, longitude: cityLng });
@@ -348,18 +378,26 @@ Deno.serve(async (req) => {
       console.log(`[${cityKey}] LLM returned ${rawEvents.length} events`);
     }
 
-    // Deduplicate & normalize, keeping only events within the rolling 120-day window
-    // (annual holiday events are exempt from the window)
+    // Deduplicate + window filter
     const windowEndDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
     const nowDate = new Date();
     const toCreate = [];
+
     for (const e of rawEvents) {
       if (!e.title || !e.date_start) continue;
+
       const holidayVal = VALID_HOLIDAYS.includes(e.holiday) ? e.holiday : 'none';
       const eventDate = new Date(e.date_start);
       if (holidayVal === 'none' && (eventDate < nowDate || eventDate > windowEndDate)) continue;
-      const key = `${e.title?.toLowerCase().slice(0, 40)}|${e.date_start?.slice(0, 10)}`;
+
+      const norm = normalizeTitle(e.title);
+      const day = e.date_start?.slice(0, 10) || '';
+      const urlPart = e.website_url ? `|${e.website_url}` : '';
+      const key = `${norm}|${day}${urlPart}`;
+
       if (existingKeys.has(key)) continue;
+      existingKeys.add(key); // prevent intra-batch duplicates
+
       toCreate.push({
         title: String(e.title).substring(0, 200),
         description: String(e.description || '').substring(0, 1000),
@@ -370,7 +408,7 @@ Deno.serve(async (req) => {
         latitude: parseFloat(e.latitude) || cityLat,
         longitude: parseFloat(e.longitude) || cityLng,
         category: VALID_CATEGORIES.includes(e.category) ? e.category : 'other',
-        holiday: VALID_HOLIDAYS.includes(e.holiday) ? e.holiday : 'none',
+        holiday: holidayVal,
         photos: e.photos || [],
         is_free: e.is_free !== false,
         price_info: e.price_info || null,
@@ -382,6 +420,8 @@ Deno.serve(async (req) => {
         going_count: 0,
         save_count: 0,
         featured: false,
+        // Note: source field is stored if your Event entity supports it;
+        // otherwise it is ignored by the backend.
       });
     }
 
