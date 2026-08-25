@@ -113,6 +113,10 @@
     "featured": {
       "type": "boolean",
       "default": false
+    },
+    "source": {
+      "type": "string",
+      "description": "Ingestion source: rss, socrata, tribe, llm, community, anchor"
     }
   },
   "required": [

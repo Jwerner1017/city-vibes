@@ -4,7 +4,8 @@ const ZOO_LAT = 38.2057;
 const ZOO_LNG = -85.7624;
 const ZOO_ADDRESS = "1100 Trevilian Way, Louisville, KY 40213";
 const ZOO_NAME = "Louisville Zoo";
-const API_URL = "https://louisvillezoo.org/wp-json/tribe/events/v1/events?per_page=50&status=publish&start_date=2026-01-01";
+const today = new Date().toISOString().slice(0, 10);
+const API_URL = `https://louisvillezoo.org/wp-json/tribe/events/v1/events?per_page=50&status=publish&start_date=${today}`;
 
 function stripHtml(html) {
   return html
