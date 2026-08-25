@@ -1,0 +1,147 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
+  --font-sans: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+
+  --color-bg: #f4f0e6;
+  --color-background: #f4f0e6;
+  --color-fg: #1a1916;
+  --color-foreground: #1a1916;
+  --color-surface: #fffcf6;
+  --color-card: #fffcf6;
+  --color-card-foreground: #1a1916;
+  --color-muted: #e7e2d6;
+  --color-muted-foreground: #5f5a52;
+  --color-primary: #1f6b4a;
+  --color-primary-foreground: #f7f4ec;
+  --color-accent: #2c4a3e;
+  --color-accent-foreground: #f7f4ec;
+  --color-secondary: #d9d1c0;
+  --color-secondary-foreground: #1a1916;
+  --color-border: #d8d0c2;
+  --color-input: #d8d0c2;
+  --color-ring: #1f6b4a;
+  --color-destructive: #8f2d2d;
+  --color-destructive-foreground: #f7f4ec;
+  --color-popover: #fffcf6;
+  --color-popover-foreground: #1a1916;
+
+  --color-cat-festival: #b4562b;
+  --color-cat-outdoor: #2f6b45;
+  --color-cat-sports: #2b5f8a;
+  --color-cat-arts: #5a4a78;
+  --color-cat-music: #8b3a3a;
+  --color-cat-food: #a15b1f;
+  --color-cat-holiday: #8a3d4a;
+  --color-cat-community: #2f6a6a;
+  --color-cat-education: #4a5a68;
+  --color-cat-attraction: #8a4a2a;
+  --color-cat-halloween: #c45c1a;
+  --color-cat-fireworks: #1e3a5f;
+  --color-cat-easter: #4a7a52;
+  --color-cat-parade: #5a3d6e;
+  --color-cat-other: #6a6560;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius: 0.75rem;
+
+  --shadow-border:
+    0px 0px 0px 1px rgba(26, 25, 22, 0.06),
+    0px 1px 2px -1px rgba(26, 25, 22, 0.06),
+    0px 2px 4px 0px rgba(26, 25, 22, 0.04);
+  --shadow-lift:
+    0px 0px 0px 1px rgba(26, 25, 22, 0.07),
+    0px 10px 28px -14px rgba(26, 25, 22, 0.32);
+
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-quick: 150ms;
+  --motion-fast: 250ms;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background:
+      radial-gradient(1100px 520px at 8% -8%, color-mix(in oklab, var(--color-primary) 8%, transparent), transparent 58%),
+      var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    overscroll-behavior: none;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    letter-spacing: -0.03em;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  img {
+    outline: 1px solid rgba(26, 25, 22, 0.08);
+    outline-offset: -1px;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background: var(--color-muted);
+  font-family: var(--font-sans);
+}
+.event-marker { background: none; border: none; }
+.leaflet-popup-content-wrapper {
+  border-radius: 16px;
+  box-shadow: var(--shadow-lift);
+  font-family: var(--font-sans);
+  background: var(--color-surface);
+  color: var(--color-fg);
+}
+.leaflet-popup-tip { background: var(--color-surface); }
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: var(--shadow-border) !important;
+  overflow: hidden;
+  border-radius: 12px !important;
+}
+.leaflet-control-zoom a {
+  color: var(--color-fg) !important;
+  background: var(--color-surface) !important;
+}
+
+.cv-pin {
+  width: 28px;
+  height: 36px;
+  transform-origin: 50% 100%;
+}
+.cv-pin.is-selected {
+  filter: drop-shadow(0 6px 10px rgba(26, 25, 22, 0.35));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
