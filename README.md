@@ -28,13 +28,16 @@ npm run typecheck
 
 ## Production
 
-Set `DATABASE_URL` to a Neon (or Postgres) connection string. Without it, the app uses PGLite locally.
+The Grok publish step provisions Neon (`DATABASE_URL`) because this app ships
+SQL migrations and `deploy.database` is on. First visitor seeds Louisville;
+Vercel cron keeps the calendars fresh:
 
-Vercel cron hits `/api/cron/sync` three times a day:
+- 11:00 UTC — Louisville morning (≈ 7am Eastern)
+- 16:00 UTC — rolling other-city batch
+- 22:00 UTC — Louisville evening / tonight
 
-- 11:00 UTC — Louisville morning
-- 16:00 UTC — rolling city batch
-- 22:00 UTC — Louisville evening refresh
+Set optional `CRON_SECRET` on the host if you want the sync URL locked down.
+Vercel Cron already sends `x-vercel-cron: 1`.
 
 ## Layout
 
@@ -42,7 +45,6 @@ Vercel cron hits `/api/cron/sync` three times a day:
 - `src/lib/sync.server.ts` — merge RSS + Tribe venue APIs + anchors
 - `src/lib/sources.ts` — feed URLs
 - `migrations/` — cities, events, neighborhoods, sync_state
-- `base44/` — previous Base44 generation (kept for reference)
 
 ## Stack
 
