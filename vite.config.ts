@@ -12,7 +12,6 @@ import { grokPwaPlugin } from "./scripts/grok-pwa-plugin.mjs";
 import { appEnvPlugin } from "./scripts/app-env-plugin.mjs";
 import { isMigrationFile } from "./scripts/migration-plan.mjs";
 
-/** The files `src/lib/db.ts` globs — same directory, same non-recursive scope. */
 function hasGlobbedMigrations(root: string): boolean {
   try {
     return readdirSync(join(root, "migrations")).some(isMigrationFile);
@@ -141,6 +140,12 @@ export default defineConfig(({ command, isPreview }) => ({
           nitro({
             preset: "vercel",
             serverDir: "./server",
+            vercel: {
+              functions: {
+                maxDuration: 60,
+                memory: 1024,
+              },
+            },
           }),
         ]
       : []),
