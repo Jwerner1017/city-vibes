@@ -116,11 +116,8 @@ async function upsertAttractions(sql: Sql, city: CityRow) {
 }
 
 function pickJob(hourUtc: number): { name: string; louisville: "if_stale" | "always"; others: number } {
-  // 11:00 UTC ≈ 7am Eastern — morning lineup (zoo, visitor bureau)
   if (hourUtc === 11) return { name: "morning-louisville", louisville: "always", others: 0 };
-  // 16:00 UTC ≈ 12pm Eastern — keep the rest of the map fresh
   if (hourUtc === 16) return { name: "midday-batch", louisville: "if_stale", others: OTHER_BATCH_SIZE };
-  // 22:00 UTC ≈ 6pm Eastern — tonight's refresh
   if (hourUtc === 22) return { name: "evening-tonight", louisville: "always", others: 0 };
   return { name: "on-demand", louisville: "if_stale", others: 1 };
 }
@@ -128,6 +125,7 @@ function pickJob(hourUtc: number): { name: string; louisville: "if_stale" | "alw
 export async function runScheduledSync(opts?: {
   forceLouisville?: boolean;
   cityId?: number;
+  fromCron?: boolean;
 }): Promise<SyncResult> {
   if (inFlight) return inFlight;
   inFlight = (async () => {
@@ -149,7 +147,7 @@ export async function runScheduledSync(opts?: {
           select updated_at from sync_state where key = 'last_run' limit 1
         `
       )[0];
-      if (last?.updated_at && !opts?.forceLouisville) {
+      if (last?.updated_at && !opts?.forceLouisville && !opts?.fromCron) {
         const age = Date.now() - new Date(last.updated_at).getTime();
         if (age >= 0 && age < MIN_GAP_MS) {
           return { skipped: true, reason: "too_soon", cities: [], next_batch: 0 };
