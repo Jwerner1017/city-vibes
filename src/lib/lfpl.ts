@@ -30,6 +30,7 @@ const MONTHS: Record<string, number> = {
 };
 
 function easternOffset(year: number, month: number, day: number): string {
+  // Second Sunday in March → first Sunday in November: EDT (-04:00)
   const d = new Date(Date.UTC(year, month, day));
   const mar = new Date(Date.UTC(year, 2, 1));
   const nov = new Date(Date.UTC(year, 10, 1));
@@ -101,7 +102,7 @@ function parsePage(html: string): IncomingEvent[] {
   const events: IncomingEvent[] = [];
   const blocks = html.split(/class="lc-event lc-event--list"/).slice(1);
   for (const block of blocks) {
-    const link = block.match(/href="(\/event\/[^"]+)\"/);
+    const link = block.match(/href="(\/event\/[^"]+)"/);
     const titleM = block.match(/class="lc-event__link">\s*([^<]+)/);
     const dateM = block.match(/lc-list-event-info-item--date">\s*([^<]+)/);
     const locM = block.match(/lc-list-event-location">\s*([^<]+)/);

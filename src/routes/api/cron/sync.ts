@@ -14,6 +14,7 @@ function cronAuthorized(request: Request): boolean {
   if (!secret) return true;
   const auth = request.headers.get("authorization");
   if (auth === `Bearer ${secret}`) return true;
+  // Vercel Cron sends this on scheduled invocations.
   return request.headers.get("x-vercel-cron") === "1";
 }
 

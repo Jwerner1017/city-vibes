@@ -45,6 +45,20 @@ export const CITY_SOURCES: Record<string, CitySource> = {
         lng: -85.7607,
         address: "2035 S 3rd St, Louisville, KY 40208",
       },
+      {
+        name: "Kentucky Shakespeare",
+        url: "https://kyshakespeare.com/wp-json/tribe/events/v1/events",
+        lat: 38.2296,
+        lng: -85.7626,
+        address: "Central Park, 1340 S 4th St, Louisville, KY 40208",
+      },
+      {
+        name: "Kentucky Science Center",
+        url: "https://kysciencecenter.org/wp-json/tribe/events/v1/events",
+        lat: 38.2565,
+        lng: -85.7595,
+        address: "727 W Main St, Louisville, KY 40202",
+      },
     ],
   },
   "New York City,NY": {
@@ -147,6 +161,17 @@ export function isFamilyFriendly(title: string, description: string) {
 
 export function inferCategory(text: string): EventCategory {
   const lower = text.toLowerCase();
+  if (
+    lower.includes("trunk or treat") ||
+    lower.includes("trunk-or-treat") ||
+    lower.includes("trick or treat") ||
+    lower.includes("trick-or-treat") ||
+    lower.includes("boo at the zoo")
+  )
+    return "trick_or_treat";
+  if (lower.includes("fish fry") || lower.includes("fish-fry")) return "food";
+  if (lower.includes("storytime") || lower.includes("story time") || lower.includes("lapsit"))
+    return "education";
   if (lower.includes("firework") || lower.includes("july 4") || lower.includes("fourth of july"))
     return "fireworks";
   if (lower.includes("festival") || lower.includes("fair") || lower.includes("derby"))
@@ -220,8 +245,12 @@ export function inferHoliday(text: string, startDate?: string): HolidayKey {
   if (
     lower.includes("halloween") ||
     lower.includes("trick or treat") ||
+    lower.includes("trunk or treat") ||
     lower.includes("haunted") ||
-    lower.includes("spooky")
+    lower.includes("spooky") ||
+    lower.includes("boo at the zoo") ||
+    lower.includes("jack o'lantern") ||
+    lower.includes("jack-o-lantern")
   )
     return "halloween";
   if (
@@ -258,6 +287,10 @@ export function isFeaturedTitle(title: string) {
     "forecastle",
     "bourbon & beyond",
     "waterfront wednesdays",
+    "state fair",
+    "boo at the zoo",
+    "jack o'lantern",
+    "fish fry guide",
   ].some((x) => t.includes(x));
 }
 

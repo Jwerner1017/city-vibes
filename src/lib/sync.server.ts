@@ -14,6 +14,8 @@ import {
   UA,
   type IncomingEvent,
 } from "@/lib/sources";
+import { fetchLfpl } from "@/lib/lfpl";
+import { louisvilleSeasonal } from "@/lib/louisville-seasonal";
 import {
   LOUISVILLE_ATTRACTIONS,
   SEED_CITIES,
@@ -116,8 +118,11 @@ async function upsertAttractions(sql: Sql, city: CityRow) {
 }
 
 function pickJob(hourUtc: number): { name: string; louisville: "if_stale" | "always"; others: number } {
+  // 11:00 UTC ≈ 7am Eastern — morning lineup (zoo, visitor bureau)
   if (hourUtc === 11) return { name: "morning-louisville", louisville: "always", others: 0 };
+  // 16:00 UTC ≈ 12pm Eastern — keep the rest of the map fresh
   if (hourUtc === 16) return { name: "midday-batch", louisville: "if_stale", others: OTHER_BATCH_SIZE };
+  // 22:00 UTC ≈ 6pm Eastern — tonight's refresh
   if (hourUtc === 22) return { name: "evening-tonight", louisville: "always", others: 0 };
   return { name: "on-demand", louisville: "if_stale", others: 1 };
 }
@@ -276,6 +281,12 @@ async function syncCity(sql: Sql, city: CityRow): Promise<SyncResult["cities"][n
 
     if (cityKey === "Louisville,KY") {
       addFrom("anchors", louisvilleAnchors(cityLat, cityLng));
+      addFrom("seasonal", louisvilleSeasonal());
+      try {
+        addFrom("lfpl", await fetchLfpl());
+      } catch (err) {
+        console.warn(`[${cityKey}] LFPL failed`, err);
+      }
       await upsertAttractions(sql, city);
     }
 
@@ -291,12 +302,14 @@ async function syncCity(sql: Sql, city: CityRow): Promise<SyncResult["cities"][n
       if (seen.has(key)) continue;
       seen.add(key);
       const eventDate = new Date(toIso(raw.date_start));
+      const eventEnd = new Date(toIso(raw.date_end || raw.date_start));
       const holiday = coerceHoliday(
         raw.holiday,
         `${raw.title} ${raw.description || ""}`,
         raw.date_start,
       );
-      if (holiday === "none" && (eventDate < now || eventDate > windowEnd)) continue;
+      if (eventEnd < now) continue;
+      if (holiday === "none" && eventDate > windowEnd) continue;
       const result = await upsertOne(sql, city, raw, key, false);
       if (result === "created") synced += 1;
       if (result === "updated") updated += 1;
