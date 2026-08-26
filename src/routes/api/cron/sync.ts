@@ -22,6 +22,6 @@ async function handle({ request }: { request: Request }) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
   const { runScheduledSync } = await import("@/lib/sync.server");
-  const result = await runScheduledSync({ fromCron: true });
+  const result = await runScheduledSync({ fromCron: true, forceLouisville: true });
   return Response.json(result);
 }
