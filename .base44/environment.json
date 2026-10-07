@@ -1,0 +1,13 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "XAI_API_KEY",
+      "description": "Optional xAI Grok API key for the 'Ask Grok' city discovery feature. Without it, the feature shows a graceful 'not available' message. Obtain from https://x.ai/api",
+      "requiredAtBoot": false,
+      "generatedForDevelopment": false
+    }
+  ]
+}
