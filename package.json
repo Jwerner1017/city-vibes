@@ -25,6 +25,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@base44/sdk": "^0.8.54",
+    "@base44/vite-plugin": "^1.0.46",
     "@electric-sql/pglite": "^0.5.4",
     "@hookform/resolvers": "^5.7.0",
     "@radix-ui/react-accordion": "^1.2.12",
