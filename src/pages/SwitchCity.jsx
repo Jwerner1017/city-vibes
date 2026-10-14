@@ -13,18 +13,19 @@ export default function SwitchCity() {
   const states = useMemo(() => {
     const stateMap = {};
     cities.forEach(c => {
-      if (!stateMap[c.state_code]) stateMap[c.state_code] = { code: c.state_code, name: c.state, cities: [] };
+      if (!c?.state_code) return;
+      if (!stateMap[c.state_code]) stateMap[c.state_code] = { code: c.state_code, name: c.state || c.state_code, cities: [] };
       stateMap[c.state_code].cities.push(c);
     });
-    return Object.values(stateMap).sort((a, b) => a.name.localeCompare(b.name));
+    return Object.values(stateMap).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   }, [cities]);
 
   const filteredCities = useMemo(() => {
     const q = query.toLowerCase();
     return cities
       .filter(c => (selectedState ? c.state_code === selectedState : true))
-      .filter(c => (q ? c.name.toLowerCase().includes(q) || c.state.toLowerCase().includes(q) || c.state_code.toLowerCase().includes(q) : true))
-      .sort((a, b) => a.state.localeCompare(b.state) || (a.ranking || 0) - (b.ranking || 0));
+      .filter(c => (q ? (c.name || "").toLowerCase().includes(q) || (c.state || "").toLowerCase().includes(q) || (c.state_code || "").toLowerCase().includes(q) : true))
+      .sort((a, b) => (a.state || "").localeCompare(b.state || "") || (a.ranking || 0) - (b.ranking || 0));
   }, [cities, query, selectedState]);
 
   const handleSelect = (city) => {
