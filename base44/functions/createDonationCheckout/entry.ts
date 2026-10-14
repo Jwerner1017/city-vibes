@@ -1,6 +1,25 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import Stripe from 'npm:stripe@14.21.0';
 
+// Only these amounts (in dollars, as sent by src/pages/Donate.jsx) are accepted.
+const ALLOWED_AMOUNTS: Record<string, number[]> = {
+  one_time: [5, 10, 20],
+  monthly: [2.99, 4.99, 9.99],
+};
+const ALLOWED_ORIGINS = ['https://city-vibes.us', 'https://www.city-vibes.us'];
+const DEFAULT_ORIGIN = 'https://city-vibes.us';
+
+// Only allow redirects back to city-vibes.us; anything else falls back to the default.
+function safeUrl(candidate: unknown, fallbackPath: string): string {
+  if (typeof candidate === 'string') {
+    try {
+      const u = new URL(candidate);
+      if (ALLOWED_ORIGINS.includes(u.origin)) return u.toString();
+    } catch (_) { /* fall through */ }
+  }
+  return `${DEFAULT_ORIGIN}${fallbackPath}`;
+}
+
 Deno.serve(async (req) => {
   try {
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -14,6 +33,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const allowed = type === 'monthly' ? ALLOWED_AMOUNTS.monthly : ALLOWED_AMOUNTS.one_time;
+    if (!allowed.includes(Number(amount))) {
+      return Response.json({ error: 'Invalid donation amount' }, { status: 400 });
+    }
+
     const amountInCents = Math.round(amount * 100);
 
     let sessionConfig: any = {
@@ -23,8 +47,8 @@ Deno.serve(async (req) => {
         type,
         tier_name: tier_name || 'One-time',
       },
-      success_url: success_url || 'https://cityvibes.app/donate?success=true',
-      cancel_url: cancel_url || 'https://cityvibes.app/donate',
+      success_url: safeUrl(success_url, '/donate?success=true'),
+      cancel_url: safeUrl(cancel_url, '/donate'),
     };
 
     if (type === 'monthly') {
