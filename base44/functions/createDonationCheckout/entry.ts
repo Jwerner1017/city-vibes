@@ -52,18 +52,26 @@ Deno.serve(async (req) => {
     };
 
     if (type === 'monthly') {
-      // Create a recurring price on the fly
-      const price = await stripe.prices.create({
-        currency: 'usd',
-        unit_amount: amountInCents,
-        recurring: { interval: 'month' },
-        product_data: {
-          name: `City Vibes ${tier_name || 'Monthly'} Support`,
-        },
-      });
-
+      // Prefer a fixed Price from env (if configured); otherwise inline price_data.
+      // No prices.create call, so no new Price object is created per checkout.
+      const priceEnv: Record<string, string> = {
+        '2.99': 'STRIPE_PRICE_DONATION_MONTHLY_299',
+        '4.99': 'STRIPE_PRICE_DONATION_MONTHLY_499',
+        '9.99': 'STRIPE_PRICE_DONATION_MONTHLY_999',
+      };
+      const fixedPrice = Deno.env.get(priceEnv[String(Number(amount))] || '');
       sessionConfig.mode = 'subscription';
-      sessionConfig.line_items = [{ price: price.id, quantity: 1 }];
+      sessionConfig.line_items = [fixedPrice
+        ? { price: fixedPrice, quantity: 1 }
+        : {
+            price_data: {
+              currency: 'usd',
+              unit_amount: amountInCents,
+              recurring: { interval: 'month' },
+              product_data: { name: `City Vibes ${tier_name || 'Monthly'} Support` },
+            },
+            quantity: 1,
+          }];
     } else {
       // One-time payment
       sessionConfig.mode = 'payment';
