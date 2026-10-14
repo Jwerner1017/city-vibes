@@ -2,11 +2,13 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
+  CalendarClock,
   CalendarPlus,
   Clock,
   ExternalLink,
   Heart,
   MapPin,
+  Phone,
   Share2,
 } from "lucide-react";
 import { getEvent } from "@/lib/queries";
@@ -143,6 +145,21 @@ function EventDetail() {
         )}
         {!event.is_free && event.price_info && (
           <p className="mt-3 text-sm font-medium">{event.price_info}</p>
+        )}
+        {event.is_permanent && event.venue_hours && (
+          <p className="mt-3 flex items-start gap-2 text-sm">
+            <CalendarClock className="mt-0.5 size-4 shrink-0 text-primary" />
+            <span>{event.venue_hours}</span>
+          </p>
+        )}
+        {event.is_permanent && event.venue_phone && (
+          <a
+            href={`tel:${event.venue_phone.replace(/[^0-9+]/g, "")}`}
+            className="mt-3 flex items-center gap-2 text-sm hover:text-primary"
+          >
+            <Phone className="size-4 shrink-0 text-primary" />
+            {event.venue_phone}
+          </a>
         )}
         {event.description && (
           <p className="mt-6 text-[15px] leading-relaxed text-fg/85">{event.description}</p>

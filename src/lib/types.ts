@@ -63,6 +63,8 @@ export type EventItem = {
   age_max: number;
   is_permanent: boolean;
   website_url: string | null;
+  venue_hours?: string | null;
+  venue_phone?: string | null;
   status: "pending" | "approved" | "rejected";
   featured: boolean;
   source: string | null;

@@ -25,6 +25,8 @@ type EventRow = {
   age_max: number;
   is_permanent: boolean;
   website_url: string | null;
+  venue_hours: string | null;
+  venue_phone: string | null;
   status: string;
   featured: boolean;
   source: string | null;
@@ -72,6 +74,8 @@ function mapEvent(row: EventRow): EventItem {
     age_max: Number(row.age_max ?? 18),
     is_permanent: Boolean(row.is_permanent),
     website_url: row.website_url,
+    venue_hours: row.venue_hours ?? null,
+    venue_phone: row.venue_phone ?? null,
     status: (row.status as EventItem["status"]) || "approved",
     featured: Boolean(row.featured),
     source: row.source,
@@ -125,6 +129,7 @@ export const listEvents = createServerFn({ method: "GET" })
     const rows = await sql<EventRow>`
       select * from events
       where status = 'approved'
+        and venue_closed = false
         and latitude between ${box.minLat} and ${box.maxLat}
         and longitude between ${box.minLng} and ${box.maxLng}
       order by featured desc, is_permanent asc, date_start asc

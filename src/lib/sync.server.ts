@@ -15,6 +15,7 @@ import {
   type IncomingEvent,
 } from "@/lib/sources";
 import { fetchLfpl } from "@/lib/lfpl";
+import { refreshVenues, researchVenuesWithGrok } from "@/lib/venues";
 import { louisvilleSeasonal } from "@/lib/louisville-seasonal";
 import {
   LOUISVILLE_ATTRACTIONS,
@@ -196,6 +197,16 @@ export async function runScheduledSync(opts?: {
         results.push(await syncCity(sql, city));
       }
 
+      // Weekly AI verification of the permanent venue list (closures, hours,
+      // prices, and newly opened venues). Cron only, so page-load syncs stay fast.
+      if (opts?.fromCron && louisville) {
+        try {
+          await researchVenuesWithGrok(sql, louisville.id);
+        } catch (err) {
+          console.warn("[venues] Grok venue research failed", err);
+        }
+      }
+
       const nextBatch =
         job.others > 0 ? (currentBatch + 1) % totalBatches : currentBatch;
       await sql`
@@ -288,6 +299,11 @@ async function syncCity(sql: Sql, city: CityRow): Promise<SyncResult["cities"][n
         console.warn(`[${cityKey}] LFPL failed`, err);
       }
       await upsertAttractions(sql, city);
+      try {
+        await refreshVenues(sql, city.id);
+      } catch (err) {
+        console.warn(`[${cityKey}] venue refresh failed`, err);
+      }
     }
 
     let synced = 0;
