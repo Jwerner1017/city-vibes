@@ -52,29 +52,34 @@ Deno.serve(async (req) => {
     };
 
     if (type === 'monthly') {
-      // Create a recurring price on the fly
-      const price = await stripe.prices.create({
-        currency: 'usd',
-        unit_amount: amountInCents,
-        recurring: { interval: 'month' },
-        product_data: {
-          name: `City Vibes ${tier_name || 'Monthly'} Support`,
-        },
-      });
-
+      // Fixed Prices only (fail closed): never create Prices/Products per checkout.
+      const priceEnv: Record<string, string> = {
+        '2.99': 'STRIPE_PRICE_DONATION_MONTHLY_299',
+        '4.99': 'STRIPE_PRICE_DONATION_MONTHLY_499',
+        '9.99': 'STRIPE_PRICE_DONATION_MONTHLY_999',
+      };
+      const envName = priceEnv[String(Number(amount))];
+      const fixedPrice = envName ? Deno.env.get(envName) : undefined;
+      if (!fixedPrice) {
+        console.error(`[Checkout] Missing ${envName || 'monthly price'} env setting`);
+        return Response.json({ error: 'Monthly donations are not configured yet. Please try again later.' }, { status: 503 });
+      }
       sessionConfig.mode = 'subscription';
-      sessionConfig.line_items = [{ price: price.id, quantity: 1 }];
+      sessionConfig.line_items = [{ price: fixedPrice, quantity: 1 }];
     } else {
-      // One-time payment
+      // One-time payment: inline price on an existing Product (no product_data,
+      // so no new Product per checkout). Fail closed if the Product isn't set.
+      const productId = Deno.env.get('STRIPE_DONATION_PRODUCT_ID');
+      if (!productId) {
+        console.error('[Checkout] Missing STRIPE_DONATION_PRODUCT_ID env setting');
+        return Response.json({ error: 'One-time donations are not configured yet. Please try again later.' }, { status: 503 });
+      }
       sessionConfig.mode = 'payment';
       sessionConfig.line_items = [{
         price_data: {
           currency: 'usd',
           unit_amount: amountInCents,
-          product_data: {
-            name: 'City Vibes Community Support',
-            description: 'One-time donation to keep City Vibes running',
-          },
+          product: productId,
         },
         quantity: 1,
       }];
