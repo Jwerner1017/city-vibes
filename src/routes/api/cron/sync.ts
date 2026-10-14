@@ -9,17 +9,25 @@ export const Route = createFileRoute("/api/cron/sync")({
   },
 });
 
-function cronAuthorized(request: Request): boolean {
-  const secret = process.env.CRON_SECRET?.trim();
-  if (!secret) return true;
-  const auth = request.headers.get("authorization");
-  if (auth === `Bearer ${secret}`) return true;
-  // Vercel Cron sends this on scheduled invocations.
-  return request.headers.get("x-vercel-cron") === "1";
+function safeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const x = enc.encode(a);
+  const y = enc.encode(b);
+  let diff = x.length ^ y.length;
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    diff |= (x[i] ?? 0) ^ (y[i] ?? 0);
+  }
+  return diff === 0;
 }
 
 async function handle({ request }: { request: Request }) {
-  if (!cronAuthorized(request)) {
+  // Fail closed: Vercel Cron sends "Authorization: Bearer <CRON_SECRET>" when it is set.
+  const secret = process.env.CRON_SECRET?.trim();
+  if (!secret) {
+    return Response.json({ error: "cron not configured" }, { status: 503 });
+  }
+  const auth = request.headers.get("authorization") ?? "";
+  if (!safeEqual(auth, `Bearer ${secret}`)) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
   const { runScheduledSync } = await import("@/lib/sync.server");
