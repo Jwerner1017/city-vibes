@@ -16,6 +16,7 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as HolidaysRouteImport } from './routes/holidays'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as NeighborhoodsRouteImport } from './routes/neighborhoods'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as EventIdRouteImport } from './routes/event.$id'
 import { Route as HolidaysChristmasRouteImport } from './routes/holidays.christmas'
@@ -58,6 +59,11 @@ const NeighborhoodsRoute = NeighborhoodsRouteImport.update({
   path: '/neighborhoods',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
   path: '/saved',
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/holidays': typeof HolidaysRouteWithChildren
   '/login': typeof LoginRoute
   '/neighborhoods': typeof NeighborhoodsRoute
+  '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/holidays': typeof HolidaysRouteWithChildren
   '/login': typeof LoginRoute
   '/neighborhoods': typeof NeighborhoodsRoute
+  '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/holidays': typeof HolidaysRouteWithChildren
   '/login': typeof LoginRoute
   '/neighborhoods': typeof NeighborhoodsRoute
+  '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/holidays'
     | '/login'
     | '/neighborhoods'
+    | '/profile'
     | '/saved'
     | '/event/$id'
     | '/holidays/christmas'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/holidays'
     | '/login'
     | '/neighborhoods'
+    | '/profile'
     | '/saved'
     | '/event/$id'
     | '/holidays/christmas'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/holidays'
     | '/login'
     | '/neighborhoods'
+    | '/profile'
     | '/saved'
     | '/event/$id'
     | '/holidays/christmas'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   HolidaysRoute: typeof HolidaysRouteWithChildren
   LoginRoute: typeof LoginRoute
   NeighborhoodsRoute: typeof NeighborhoodsRoute
+  ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
   EventIdRoute: typeof EventIdRoute
   OauthConsentRoute: typeof OauthConsentRoute
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/neighborhoods'
       fullPath: '/neighborhoods'
       preLoaderRoute: typeof NeighborhoodsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/saved': {
@@ -315,6 +335,7 @@ const rootRouteChildren: RootRouteChildren = {
   HolidaysRoute: HolidaysRouteWithChildren,
   LoginRoute: LoginRoute,
   NeighborhoodsRoute: NeighborhoodsRoute,
+  ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
   EventIdRoute: EventIdRoute,
   OauthConsentRoute: OauthConsentRoute,

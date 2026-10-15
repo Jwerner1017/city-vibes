@@ -1,6 +1,35 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* System dark mode (Android WebView follows the device theme) */
+@media (prefers-color-scheme: dark) {
+  :root:root {
+    color-scheme: dark;
+    --color-bg: #101318;
+    --color-background: #101318;
+    --color-fg: #f5f3f0;
+    --color-foreground: #f5f3f0;
+    --color-surface: #1a1d23;
+    --color-card: #1a1d23;
+    --color-card-foreground: #f5f3f0;
+    --color-popover: #1a1d23;
+    --color-popover-foreground: #f5f3f0;
+    --color-muted: #262a33;
+    --color-muted-foreground: #a3aab6;
+    --color-primary: #34d68a;
+    --color-primary-foreground: #0b1410;
+    --color-accent: #4fb3ff;
+    --color-accent-foreground: #0b1018;
+    --color-secondary: #2a2f39;
+    --color-secondary-foreground: #f5f3f0;
+    --color-border: #303541;
+    --color-input: #303541;
+    --color-ring: #34d68a;
+    --color-destructive: #ff5c5c;
+    --color-destructive-foreground: #140808;
+  }
+}
+
 @theme {
   --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
   --font-sans: "Figtree", "Segoe UI", system-ui, sans-serif;

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { EventCategory } from "@/lib/types";
 
 export const Route = createFileRoute("/create")({
@@ -80,18 +81,18 @@ function CreatePage() {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="category">Category</Label>
-          <select
-            id="category"
-            name="category"
-            defaultValue="community"
-            className="flex h-11 w-full rounded-md border border-input bg-surface px-3 text-sm"
-          >
-            {(Object.keys(CATEGORY_CONFIG) as EventCategory[]).map((k) => (
-              <option key={k} value={k}>
-                {CATEGORY_CONFIG[k].label}
-              </option>
-            ))}
-          </select>
+          <Select name="category" defaultValue="community">
+            <SelectTrigger id="category" className="h-11 w-full bg-surface">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-surface">
+              {(Object.keys(CATEGORY_CONFIG) as EventCategory[]).map((k) => (
+                <SelectItem key={k} value={k}>
+                  {CATEGORY_CONFIG[k].label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="description">What is it</Label>

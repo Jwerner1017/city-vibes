@@ -6,6 +6,7 @@ import { listEvents } from "@/lib/queries";
 import { useCity } from "@/components/city-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { EventCard } from "@/components/event-card";
+import PullToRefresh from "@/components/PullToRefresh";
 import { getSavedIds, subscribeSaved } from "@/lib/saved";
 
 export const Route = createFileRoute("/saved")({
@@ -40,7 +41,7 @@ function SavedPage() {
   );
 
   return (
-    <div className="min-h-dvh bg-bg pb-24">
+    <PullToRefresh onRefresh={() => eventsQuery.refetch()} className="h-dvh bg-bg pb-24">
       <header className="border-b border-border bg-surface px-4 pb-5 pt-[max(1rem,env(safe-area-inset-top))]">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">City Vibes</p>
         <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">Saved</h1>
@@ -72,6 +73,6 @@ function SavedPage() {
         )}
       </div>
       <BottomNav />
-    </div>
+    </PullToRefresh>
   );
 }

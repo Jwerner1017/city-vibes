@@ -18,6 +18,7 @@ import { CitySelector } from "@/components/city-selector";
 import { BottomNav } from "@/components/bottom-nav";
 import { EventMap } from "@/components/event-map";
 import { EventCard } from "@/components/event-card";
+import PullToRefresh from "@/components/PullToRefresh";
 import { FilterBar } from "@/components/filter-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { eventsOnDate, groupEventsByDay, groupRunningEvents, windowBounds } from "@/lib/event-utils";
@@ -273,7 +274,7 @@ function DiscoverInner() {
             )}
 
             {view === "calendar" && (
-              <div className="h-full overflow-y-auto px-4 pb-32 pt-4">
+              <PullToRefresh onRefresh={() => eventsQuery.refetch()} className="h-full px-4 pb-32 pt-4">
                 <div className="mb-4 flex items-center justify-between">
                   <button
                     className="flex size-11 items-center justify-center rounded-full hover:bg-muted"
@@ -365,11 +366,11 @@ function DiscoverInner() {
                     </div>
                   </div>
                 )}
-              </div>
+              </PullToRefresh>
             )}
 
             {view === "list" && (
-              <div className="h-full overflow-y-auto px-4 pb-32 pt-4">
+              <PullToRefresh onRefresh={() => eventsQuery.refetch()} className="h-full px-4 pb-32 pt-4">
                 {upcoming.length === 0 && permanents.length === 0 ? (
                   <EmptyState city={selectedCity.name} query={query} />
                 ) : (
@@ -411,7 +412,7 @@ function DiscoverInner() {
                     )}
                   </>
                 )}
-              </div>
+              </PullToRefresh>
             )}
           </>
         )}
