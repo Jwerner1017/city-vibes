@@ -14,11 +14,13 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as CitiesRouteImport } from './routes/cities'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as HolidaysRouteImport } from './routes/holidays'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as NeighborhoodsRouteImport } from './routes/neighborhoods'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as EventIdRouteImport } from './routes/event.$id'
 import { Route as HolidaysChristmasRouteImport } from './routes/holidays.christmas'
 import { Route as HolidaysHalloweenRouteImport } from './routes/holidays.halloween'
+import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as ApiCronSyncRouteImport } from './routes/api/cron/sync'
 
 const IndexRoute = IndexRouteImport.update({
@@ -46,6 +48,11 @@ const HolidaysRoute = HolidaysRouteImport.update({
   path: '/holidays',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NeighborhoodsRoute = NeighborhoodsRouteImport.update({
   id: '/neighborhoods',
   path: '/neighborhoods',
@@ -71,6 +78,11 @@ const HolidaysHalloweenRoute = HolidaysHalloweenRouteImport.update({
   path: '/halloween',
   getParentRoute: () => HolidaysRoute,
 } as any)
+const OauthConsentRoute = OauthConsentRouteImport.update({
+  id: '/oauth/consent',
+  path: '/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCronSyncRoute = ApiCronSyncRouteImport.update({
   id: '/api/cron/sync',
   path: '/api/cron/sync',
@@ -83,11 +95,13 @@ export interface FileRoutesByFullPath {
   '/cities': typeof CitiesRoute
   '/create': typeof CreateRoute
   '/holidays': typeof HolidaysRouteWithChildren
+  '/login': typeof LoginRoute
   '/neighborhoods': typeof NeighborhoodsRoute
   '/saved': typeof SavedRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
   '/holidays/halloween': typeof HolidaysHalloweenRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/api/cron/sync': typeof ApiCronSyncRoute
 }
 export interface FileRoutesByTo {
@@ -96,11 +110,13 @@ export interface FileRoutesByTo {
   '/cities': typeof CitiesRoute
   '/create': typeof CreateRoute
   '/holidays': typeof HolidaysRouteWithChildren
+  '/login': typeof LoginRoute
   '/neighborhoods': typeof NeighborhoodsRoute
   '/saved': typeof SavedRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
   '/holidays/halloween': typeof HolidaysHalloweenRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/api/cron/sync': typeof ApiCronSyncRoute
 }
 export interface FileRoutesById {
@@ -110,11 +126,13 @@ export interface FileRoutesById {
   '/cities': typeof CitiesRoute
   '/create': typeof CreateRoute
   '/holidays': typeof HolidaysRouteWithChildren
+  '/login': typeof LoginRoute
   '/neighborhoods': typeof NeighborhoodsRoute
   '/saved': typeof SavedRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
   '/holidays/halloween': typeof HolidaysHalloweenRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/api/cron/sync': typeof ApiCronSyncRoute
 }
 export interface FileRouteTypes {
@@ -125,11 +143,13 @@ export interface FileRouteTypes {
     | '/cities'
     | '/create'
     | '/holidays'
+    | '/login'
     | '/neighborhoods'
     | '/saved'
     | '/event/$id'
     | '/holidays/christmas'
     | '/holidays/halloween'
+    | '/oauth/consent'
     | '/api/cron/sync'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -138,11 +158,13 @@ export interface FileRouteTypes {
     | '/cities'
     | '/create'
     | '/holidays'
+    | '/login'
     | '/neighborhoods'
     | '/saved'
     | '/event/$id'
     | '/holidays/christmas'
     | '/holidays/halloween'
+    | '/oauth/consent'
     | '/api/cron/sync'
   id:
     | '__root__'
@@ -151,11 +173,13 @@ export interface FileRouteTypes {
     | '/cities'
     | '/create'
     | '/holidays'
+    | '/login'
     | '/neighborhoods'
     | '/saved'
     | '/event/$id'
     | '/holidays/christmas'
     | '/holidays/halloween'
+    | '/oauth/consent'
     | '/api/cron/sync'
   fileRoutesById: FileRoutesById
 }
@@ -165,9 +189,11 @@ export interface RootRouteChildren {
   CitiesRoute: typeof CitiesRoute
   CreateRoute: typeof CreateRoute
   HolidaysRoute: typeof HolidaysRouteWithChildren
+  LoginRoute: typeof LoginRoute
   NeighborhoodsRoute: typeof NeighborhoodsRoute
   SavedRoute: typeof SavedRoute
   EventIdRoute: typeof EventIdRoute
+  OauthConsentRoute: typeof OauthConsentRoute
   ApiCronSyncRoute: typeof ApiCronSyncRoute
 }
 
@@ -208,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HolidaysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/neighborhoods': {
       id: '/neighborhoods'
       path: '/neighborhoods'
@@ -243,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HolidaysHalloweenRouteImport
       parentRoute: typeof HolidaysRoute
     }
+    '/oauth/consent': {
+      id: '/oauth/consent'
+      path: '/oauth/consent'
+      fullPath: '/oauth/consent'
+      preLoaderRoute: typeof OauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/cron/sync': {
       id: '/api/cron/sync'
       path: '/api/cron/sync'
@@ -273,9 +313,11 @@ const rootRouteChildren: RootRouteChildren = {
   CitiesRoute: CitiesRoute,
   CreateRoute: CreateRoute,
   HolidaysRoute: HolidaysRouteWithChildren,
+  LoginRoute: LoginRoute,
   NeighborhoodsRoute: NeighborhoodsRoute,
   SavedRoute: SavedRoute,
   EventIdRoute: EventIdRoute,
+  OauthConsentRoute: OauthConsentRoute,
   ApiCronSyncRoute: ApiCronSyncRoute,
 }
 export const routeTree = rootRouteImport
