@@ -436,12 +436,7 @@ Deno.serve(async (req) => {
         name: body.city_name,
         state_code: body.city_state,
       });
-      city = cities[0] || {
-        name: body.city_name,
-        state_code: body.city_state,
-        latitude: body.city_lat,
-        longitude: body.city_lng,
-      };
+      city = cities[0]; // never synthesize a city from request input
     }
     if (!city) return Response.json({ error: "City not found" }, { status: 404 });
 
@@ -547,7 +542,7 @@ Deno.serve(async (req) => {
         age_min: raw.age_min ?? 0,
         age_max: raw.age_max ?? 18,
         is_permanent: false,
-        website_url: raw.website_url || null,
+        website_url: /^https?:\/\//i.test(raw.website_url || "") ? raw.website_url : null,
         status: "approved",
         featured: Boolean(raw.featured) || isFeaturedTitle(raw.title),
         source: raw.source || "sync",
@@ -607,7 +602,7 @@ Deno.serve(async (req) => {
       sources: sourceCounts,
     });
   } catch (error: any) {
-    console.error("[syncCityFromSource]", error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error("[syncCityFromSource]", error);
+    return Response.json({ error: "Internal error" }, { status: 500 });
   }
 });

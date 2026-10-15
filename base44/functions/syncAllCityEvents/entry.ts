@@ -118,7 +118,7 @@ Only include REAL confirmed events. Use ${cityLat}/${cityLng} as fallback coords
       age_min: e.age_min ?? 0,
       age_max: e.age_max ?? 18,
       is_permanent: false,
-      website_url: e.website_url || null,
+      website_url: /^https?:\/\//i.test(e.website_url || '') ? e.website_url : null,
       status: 'approved',
       going_count: 0,
       save_count: 0,
@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
         const r = await syncOneCity(base44, city);
         results.push(r);
       } catch (err) {
-        results.push({ city: `${city.name}, ${city.state_code}`, error: err.message });
+        results.push({ city: `${city.name}, ${city.state_code}`, error: 'sync failed' }); console.error(err);
       }
     }
 
@@ -188,6 +188,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[syncAllCityEvents]', error);
+    return Response.json({ error: 'Internal error' }, { status: 500 });
   }
 });

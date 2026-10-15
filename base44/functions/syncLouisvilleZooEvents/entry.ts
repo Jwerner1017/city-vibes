@@ -169,6 +169,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[syncLouisvilleZooEvents]', error);
+    return Response.json({ error: 'Internal error' }, { status: 500 });
   }
 });

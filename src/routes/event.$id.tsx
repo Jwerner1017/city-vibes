@@ -18,6 +18,7 @@ import { getSavedIds, subscribeSaved, toggleSaved } from "@/lib/saved";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { safeHttpUrl } from "@/lib/safe-url";
 
 export const Route = createFileRoute("/event/$id")({
   loader: async ({ params }) => {

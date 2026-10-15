@@ -19,11 +19,18 @@ Deno.serve(async (req) => {
 
     // Get payload: { city_name, city_state, city_lat, city_lng, city_id }
     const body = await req.json().catch(() => ({}));
-    const { city_name, city_state, city_lat, city_lng } = body;
-
-    if (!city_name || !city_state) {
+    if (typeof body.city_name !== 'string' || typeof body.city_state !== 'string') {
       return Response.json({ error: 'city_name and city_state are required' }, { status: 400 });
     }
+    // Only known cities: never pass request-supplied text into the LLM prompt
+    const knownCity = (await base44.asServiceRole.entities.City.filter({
+      name: body.city_name.slice(0, 80), state_code: body.city_state.slice(0, 4),
+    }))[0];
+    if (!knownCity) return Response.json({ error: 'City not found' }, { status: 404 });
+    const city_name = knownCity.name;
+    const city_state = knownCity.state_code;
+    const city_lat = Number(knownCity.latitude) || 0;
+    const city_lng = Number(knownCity.longitude) || 0;
 
     // Get existing events for this city to avoid duplicates
     const existing = await base44.asServiceRole.entities.Event.filter(
@@ -144,7 +151,7 @@ Rules:
         age_min: e.age_min ?? 0,
         age_max: e.age_max ?? 18,
         is_permanent: false,
-        website_url: e.website_url || null,
+        website_url: /^https?:\/\//i.test(e.website_url || '') ? e.website_url : null,
         status: 'approved',
         going_count: 0,
         save_count: 0,
@@ -166,6 +173,7 @@ Rules:
     });
 
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[syncCityEvents]', error);
+    return Response.json({ error: 'Internal error' }, { status: 500 });
   }
 });

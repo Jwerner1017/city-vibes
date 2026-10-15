@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       try {
         results.push(await syncOneCity(base44, louisville));
       } catch (err) {
-        results.push({ city: 'Louisville, KY', error: err.message });
+        results.push({ city: 'Louisville, KY', error: 'sync failed' });
       }
     }
 
@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
       try {
         results.push(await syncOneCity(base44, city));
       } catch (err) {
-        results.push({ city: `${city.name}, ${city.state_code}`, error: err.message });
+        results.push({ city: `${city.name}, ${city.state_code}`, error: 'sync failed' });
       }
     }
 
@@ -101,6 +101,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[syncNextCityBatch]', error);
+    return Response.json({ error: 'Internal error' }, { status: 500 });
   }
 });

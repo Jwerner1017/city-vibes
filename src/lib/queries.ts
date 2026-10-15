@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getSql } from "@/lib/db";
+import { safeHttpUrl } from "@/lib/safe-url";
 import type { City, EventCategory, EventItem, HolidayKey, Neighborhood } from "@/lib/types";
 import { boundingBox } from "@/lib/geo";
 import { RADIUS_MILES } from "@/lib/constants";

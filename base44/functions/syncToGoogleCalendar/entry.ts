@@ -44,6 +44,7 @@ Deno.serve(async (req) => {
     const created = await response.json();
     return Response.json({ success: true, calendarEventId: created.id });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[syncToGoogleCalendar]', error);
+    return Response.json({ error: 'Internal error' }, { status: 500 });
   }
 });

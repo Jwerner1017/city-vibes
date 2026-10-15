@@ -88,6 +88,6 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('[Checkout Error]', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'Checkout could not be started. Please try again.' }, { status: 500 });
   }
 });
