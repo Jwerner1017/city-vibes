@@ -15,6 +15,7 @@ import {
   type IncomingEvent,
 } from "@/lib/sources";
 import { fetchLfpl } from "@/lib/lfpl";
+import { safeHttpUrl } from "@/lib/safe-url";
 import { refreshVenues, researchVenuesWithGrok } from "@/lib/venues";
 import { louisvilleSeasonal } from "@/lib/louisville-seasonal";
 import {
@@ -385,7 +386,7 @@ async function upsertOne(
   const lng = Number(raw.longitude) || city.longitude;
   const location = String(raw.location_name || city.name).slice(0, 200);
   const address = String(raw.address || `${city.name}, ${city.state_code}`).slice(0, 300);
-  const website = raw.website_url || null;
+  const website = safeHttpUrl(raw.website_url);
   const source = raw.source || "sync";
 
   const existing = (

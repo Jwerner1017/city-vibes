@@ -231,7 +231,7 @@ export const createCommunityEvent = createServerFn({ method: "POST" })
         ${data.cityId}, ${title}, ${description}, ${dateStart}, ${dateStart},
         ${data.location_name.slice(0, 200)}, ${data.address.slice(0, 300)},
         ${data.latitude}, ${data.longitude}, ${category}, ${holiday}, '[]', ${data.is_free},
-        0, 18, false, ${data.website_url || null}, 'approved', false, 'community', ${key}
+        0, 18, false, ${safeHttpUrl(data.website_url)}, 'approved', false, 'community', ${key}
       )
       returning id
     `;

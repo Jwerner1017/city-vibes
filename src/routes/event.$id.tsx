@@ -164,9 +164,9 @@ function EventDetail() {
         {event.description && (
           <p className="mt-6 text-[15px] leading-relaxed text-fg/85">{event.description}</p>
         )}
-        {event.website_url && (
+        {safeHttpUrl(event.website_url) && (
           <a
-            href={event.website_url}
+            href={safeHttpUrl(event.website_url)!}
             target="_blank"
             rel="noreferrer"
             className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary"
