@@ -80,15 +80,34 @@ export function PinPicker({
     m.setView([latitude, longitude], Math.max(m.getZoom(), 16));
   }, [latitude, longitude]);
 
+  // Keyboard users pan the map with the arrow keys, then drop the pin here.
+  const pinAtCenter = () => {
+    const m = map.current;
+    const pin = marker.current;
+    if (!m || !pin) return;
+    const c = m.getCenter();
+    pin.setLatLng(c);
+    onMoveRef.current(c.lat, c.lng);
+  };
+
   // The app's .leaflet-container rule is height: 100%, so the size lives on a wrapper.
   return (
-    <div className="h-56 w-full overflow-hidden rounded-xl shadow-[var(--shadow-border)]">
-      <div
-        ref={el}
-        className="size-full"
-        role="application"
-        aria-label="Map — drag the pin to the exact spot"
-      />
+    <div className="space-y-1.5">
+      <div className="h-56 w-full overflow-hidden rounded-xl shadow-[var(--shadow-border)]">
+        <div
+          ref={el}
+          className="size-full"
+          role="application"
+          aria-label="Map — drag the pin to the exact spot, or pan with the arrow keys"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={pinAtCenter}
+        className="min-h-11 text-xs font-medium text-primary underline-offset-4 hover:underline"
+      >
+        Put the pin at the center of the map
+      </button>
     </div>
   );
 }

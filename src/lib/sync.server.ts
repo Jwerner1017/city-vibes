@@ -315,7 +315,7 @@ async function syncCity(sql: Sql, city: CityRow): Promise<SyncResult["cities"][n
 
     for (const raw of merged) {
       if (!raw.title || !raw.date_start) continue;
-      const key = eventKey(raw.title, toIso(raw.date_start));
+      const key = eventKey(raw.title, raw.key_date ?? toIso(raw.date_start));
       if (seen.has(key)) continue;
       seen.add(key);
       const eventDate = new Date(toIso(raw.date_start));

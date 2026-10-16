@@ -75,6 +75,9 @@ export type EventItem = {
   range_end?: string | null;
 };
 
+/** What the host's manage page gets: the listing plus how it can still be changed. */
+export type ManagedEvent = EventItem & { restores_left: number };
+
 export type Neighborhood = {
   id: number;
   name: string;

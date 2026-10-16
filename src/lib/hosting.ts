@@ -58,10 +58,18 @@ export type ReportReason = (typeof REPORT_REASONS)[number]["key"];
 
 /** Distinct reporters needed before a community listing hides itself. */
 export const HIDE_AFTER_REPORTS = 3;
-/** Community listings one device/network can post per day. */
-export const POSTS_PER_IP_PER_DAY = 5;
-/** Community listings the whole city can take per day (spam backstop). */
-export const POSTS_PER_DAY = 150;
+/**
+ * Times a host can bring a hidden listing back by saving a correction. One
+ * undoes a pile-on against a real trunk-or-treat; spam that gets reported
+ * again stays down.
+ */
+export const MAX_RESTORES = 1;
+/** Community listings one device can post per day. */
+export const POSTS_PER_DEVICE_PER_DAY = 5;
+/** Community listings one (non-shared) network can post per day. */
+export const POSTS_PER_NETWORK_PER_DAY = 15;
+/** Community listings one city can take per day (spam backstop). */
+export const POSTS_PER_CITY_PER_DAY = 150;
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -140,11 +148,16 @@ export function validateHostInput(
   if (rawUrl && !website)
     return { ok: false, error: "Links need to start with http:// or https://." };
 
+  // Only the trunk-or-treat form makes trick_or_treat listings: the manage page
+  // reopens them in that form, which needs a host and an end time.
+  const requested = String(input.category);
   const category = trunk
     ? "trick_or_treat"
-    : opts.validCategories.includes(String(input.category))
-      ? String(input.category)
-      : "community";
+    : requested === "trick_or_treat"
+      ? "holiday"
+      : opts.validCategories.includes(requested)
+        ? requested
+        : "community";
 
   const amenities = Array.isArray(input.amenities)
     ? AMENITY_KEYS.filter((k) => input.amenities!.includes(k))

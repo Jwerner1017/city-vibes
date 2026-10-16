@@ -102,10 +102,10 @@ function EventDetail() {
           <img src={photo} alt="" className="size-full object-cover" />
         ) : (
           <div className={cn("flex size-full items-center justify-center", cat.colorClass)}>
-            <Icon className="size-16 text-primary-foreground/75" />
+            <Icon className="size-16 text-on-media/75" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-fg via-fg/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-scrim via-scrim/20 to-transparent" />
         <Link
           to="/"
           className="absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] flex size-11 items-center justify-center rounded-full bg-surface/95 shadow-[var(--shadow-border)]"
@@ -120,7 +120,7 @@ function EventDetail() {
         >
           <Heart className={cn("size-5", saved && "fill-primary text-primary")} />
         </button>
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-5 text-primary-foreground">
+        <div className="absolute inset-x-0 bottom-0 px-5 pb-5 text-on-media">
           <div className="mb-2 flex flex-wrap gap-1.5">
             <span
               className={cn(

@@ -1,4 +1,4 @@
-import { distanceMiles } from "@/lib/geo";
+import { distanceMiles } from "./geo.ts";
 
 export type GeocodeHit = {
   latitude: number;
@@ -10,13 +10,20 @@ export type GeocodeHit = {
 const TIMEOUT_MS = 6000;
 const UA = "CityVibes/1.0 (community event map)";
 
-/** Adds the city and state when the host typed only a street address. */
+const STATE_CODES =
+  "AL|AK|AZ|AR|CA|CO|CT|DE|DC|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY";
+const NAMES_A_PLACE = new RegExp(
+  `,\\s*(?:${STATE_CODES}|Kentucky|Indiana|Ohio|Tennessee)\\b|\\b\\d{5}\\b`,
+);
+
+/**
+ * Adds the city and state when the host typed only a street address. Text that
+ * already names a state or ZIP ("…, Clarksville, IN") is left alone, so
+ * across-the-river places aren't turned into "…, IN, Louisville, KY".
+ */
 export function withCity(address: string, cityName: string, stateCode: string): string {
   const a = address.trim().replace(/\s+/g, " ");
-  const lower = a.toLowerCase();
-  if (lower.includes(cityName.toLowerCase()) || new RegExp(`\\b${stateCode}\\b`, "i").test(a)) {
-    return a;
-  }
+  if (a.toLowerCase().includes(cityName.toLowerCase()) || NAMES_A_PLACE.test(a)) return a;
   return `${a}, ${cityName}, ${stateCode}`;
 }
 
@@ -67,9 +74,19 @@ export async function geocode(
 ): Promise<GeocodeHit | null> {
   const q = withCity(address, city.name, city.state_code);
   if (q.length < 4) return null;
-  for (const lookup of [census, osm]) {
+  // Place names sometimes match only one way ("Falls of the Ohio" vs "…, Louisville, KY"),
+  // so OpenStreetMap also gets the other phrasing.
+  const raw = address.trim().replace(/\s+/g, " ");
+  const alt = q === raw ? `${raw}, ${city.name}, ${city.state_code}` : raw;
+  type Lookup = (query: string) => Promise<GeocodeHit | null>;
+  const attempts: Array<[Lookup, string]> = [
+    [census, q],
+    [osm, q],
+    [osm, alt],
+  ];
+  for (const [lookup, query] of attempts) {
     try {
-      const hit = await lookup(q);
+      const hit = await lookup(query);
       if (
         hit &&
         distanceMiles(city.latitude, city.longitude, hit.latitude, hit.longitude) <= maxMiles

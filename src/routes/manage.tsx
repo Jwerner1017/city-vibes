@@ -7,19 +7,19 @@ import { isWellFormedToken } from "@/lib/hosting";
 import { useCity } from "@/components/city-provider";
 import { HostEventForm } from "@/components/host-event-form";
 import { Button } from "@/components/ui/button";
-import type { City, EventItem } from "@/lib/types";
+import type { City, ManagedEvent } from "@/lib/types";
 
 export const Route = createFileRoute("/manage")({
   component: ManagePage,
 });
 
 type State =
-  { kind: "loading" } | { kind: "missing" } | { kind: "ready"; token: string; event: EventItem };
+  { kind: "loading" } | { kind: "missing" } | { kind: "ready"; token: string; event: ManagedEvent };
 
 function ManagePage() {
   const { cities, selectedCity } = useCity();
   const [state, setState] = useState<State>({ kind: "loading" });
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -30,7 +30,7 @@ function ManagePage() {
     let current = 0;
     const load = () => {
       const run = ++current;
-      setSaved(false);
+      setSaved(null);
       setConfirmCancel(false);
       setCancelError(null);
       const token = decodeURIComponent(window.location.hash.replace(/^#/, ""));
@@ -92,7 +92,7 @@ function ManagePage() {
             <StatusNote event={state.event} />
             {saved && (
               <p role="status" className="rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
-                Saved. Families see the update now.
+                {saved}
               </p>
             )}
             {state.event.status !== "cancelled" && (
@@ -105,7 +105,9 @@ function ManagePage() {
                   submitLabel="Save changes"
                   busyLabel="Saving…"
                   onSubmit={async (payload) => {
-                    await updateCommunityEvent({ data: { ...payload, token: state.token } });
+                    const res = await updateCommunityEvent({
+                      data: { ...payload, token: state.token },
+                    });
                     const fresh = await getManagedEvent({ data: { token: state.token } });
                     if (fresh) {
                       setState({ kind: "ready", token: state.token, event: fresh });
@@ -116,7 +118,14 @@ function ManagePage() {
                         date_start: fresh.date_start,
                       });
                     }
-                    setSaved(true);
+                    // Only promise "families see it" when the listing is actually on the map.
+                    setSaved(
+                      res.restored
+                        ? "Saved — it's back on the map."
+                        : fresh?.status === "approved"
+                          ? "Saved. Families see the update now."
+                          : "Saved. It stays hidden because neighbors reported it again.",
+                    );
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                 />
@@ -182,7 +191,7 @@ function ManagePage() {
   );
 }
 
-function StatusNote({ event }: { event: EventItem }) {
+function StatusNote({ event }: { event: ManagedEvent }) {
   if (event.status === "cancelled") {
     return (
       <div className="rounded-2xl bg-surface p-5 shadow-[var(--shadow-border)]">
@@ -196,8 +205,9 @@ function StatusNote({ event }: { event: EventItem }) {
   if (event.status === "hidden") {
     return (
       <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
-        Several neighbors reported this listing, so it's hidden from the map for now. Make sure the
-        time, place, and details are right.
+        {event.restores_left > 0
+          ? "Several neighbors reported this listing, so it's hidden from the map. Check the time, place, and details, then save — that puts it back on the map (this works once)."
+          : "Neighbors reported this listing again after it was restored, so it stays off the map."}
       </p>
     );
   }

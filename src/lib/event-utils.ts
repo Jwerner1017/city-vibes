@@ -90,9 +90,10 @@ export function formatEventWhen(event: EventItem): string {
     return `${dateFmt.format(start)} – ${dateFmt.format(end)}`;
   }
   if (event.is_permanent) return "Open regularly";
-  // A same-evening window (incl. 6pm–12:30am) reads as a time range.
+  // A same-evening window (incl. 6pm–12:30am) reads as a time range. RSS items
+  // carry no end time (sync fills in start + 3h), so they never show one.
   const span = end && !Number.isNaN(end.getTime()) ? end.getTime() - start.getTime() : 0;
-  if (end && span > 0 && span <= 18 * 3_600_000) {
+  if (end && span > 0 && span <= 18 * 3_600_000 && event.source !== "rss") {
     return `${dateFmt.format(start)} · ${timeFmt.format(start)} – ${timeFmt.format(end)}`;
   }
   // A multi-day run that already started (Boo at the Zoo, pumpkin trails): say until when.

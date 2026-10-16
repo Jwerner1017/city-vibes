@@ -45,7 +45,7 @@ export function EventCard({
                 cat.colorClass,
               )}
             >
-              <Icon className="size-5 text-primary-foreground" />
+              <Icon className="size-5 text-on-media" />
             </div>
           ) : (
             <div className="flex size-14 shrink-0 flex-col items-center justify-center rounded-lg bg-muted">
@@ -105,14 +105,14 @@ export function EventCard({
           />
         ) : (
           <div className={cn("flex size-full items-center justify-center", cat.colorClass)}>
-            <Icon className="size-12 text-primary-foreground/80" />
+            <Icon className="size-12 text-on-media/80" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-fg/55 via-fg/0 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-scrim/55 via-scrim/0 to-transparent" />
         <div className="absolute left-2.5 top-2.5 flex gap-1">
           <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-primary-foreground",
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-on-media",
               cat.colorClass,
             )}
           >
@@ -125,7 +125,7 @@ export function EventCard({
             Free
           </Badge>
         )}
-        <div className="absolute inset-x-0 bottom-0 p-3 text-primary-foreground">
+        <div className="absolute inset-x-0 bottom-0 p-3 text-on-media">
           <h3 className="font-display text-base font-medium leading-snug tracking-tight drop-shadow-sm">
             {event.title}
           </h3>

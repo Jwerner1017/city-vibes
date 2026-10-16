@@ -88,11 +88,19 @@ export function HostEventForm({
   const [date, setDate] = useState(startParts.date);
   const [startTime, setStartTime] = useState(startParts.time);
   const [endTime, setEndTime] = useState(endParts?.time ?? "");
+  // The server fills location_name with the host or address when it's left blank;
+  // don't echo those back as "spot details", or an edited address would keep the old one.
   const [placeName, setPlaceName] = useState(
-    initial && initial.location_name !== initial.host_name ? (initial.location_name ?? "") : "",
+    initial &&
+      initial.location_name !== initial.host_name &&
+      initial.location_name !== initial.address
+      ? (initial.location_name ?? "")
+      : "",
   );
   const [address, setAddress] = useState(initial?.address ?? "");
   const [neighborhood, setNeighborhood] = useState(initial?.neighborhood ?? "");
+  /** The area was filled in from the address, so a corrected address may replace it. */
+  const autoArea = useRef(false);
   const [otherArea, setOtherArea] = useState(
     Boolean(initial?.neighborhood && !areaNames.includes(initial.neighborhood)),
   );
@@ -146,7 +154,8 @@ export function HostEventForm({
         setLng(res.longitude);
         setLocated("found");
         setGeoNote(`Found: ${res.matched}. Drag the pin if it's a little off.`);
-        if (res.area && !neighborhood) {
+        if (res.area && (!neighborhood || autoArea.current)) {
+          autoArea.current = true;
           setNeighborhood(res.area);
           setOtherArea(!areaNames.includes(res.area));
         }
@@ -341,6 +350,8 @@ export function HostEventForm({
             latitude={lat}
             longitude={lng}
             onMove={(a, b) => {
+              // A hand-placed pin counts for the address as typed now.
+              lookedUp.current = address.trim();
               setLat(a);
               setLng(b);
               setLocated("manual");
@@ -363,9 +374,11 @@ export function HostEventForm({
               value={areaChoice}
               onValueChange={(v) => {
                 if (v === OTHER) {
+                  autoArea.current = false;
                   setOtherArea(true);
                   if (areaNames.includes(neighborhood)) setNeighborhood("");
                 } else {
+                  autoArea.current = false;
                   setOtherArea(false);
                   setNeighborhood(v);
                 }
@@ -389,7 +402,10 @@ export function HostEventForm({
               id={areaNames.length ? "neighborhood_other" : "neighborhood"}
               className={areaNames.length ? "mt-2" : undefined}
               value={neighborhood}
-              onChange={(e) => setNeighborhood(e.target.value)}
+              onChange={(e) => {
+                autoArea.current = false;
+                setNeighborhood(e.target.value);
+              }}
               maxLength={80}
               placeholder="Neighborhood or subdivision"
               aria-label="Neighborhood"
@@ -405,11 +421,14 @@ export function HostEventForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-surface">
-              {(Object.keys(CATEGORY_CONFIG) as EventCategory[]).map((k) => (
-                <SelectItem key={k} value={k}>
-                  {CATEGORY_CONFIG[k].label}
-                </SelectItem>
-              ))}
+              {(Object.keys(CATEGORY_CONFIG) as EventCategory[])
+                // Trunk-or-treats have their own form (host + end time required).
+                .filter((k) => k !== "trick_or_treat")
+                .map((k) => (
+                  <SelectItem key={k} value={k}>
+                    {CATEGORY_CONFIG[k].label}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </Field>

@@ -52,6 +52,15 @@ test("plain community events default end to start and keep a valid category", ()
   assert.equal(r.value.host_name, null);
 });
 
+test("general events can't claim the trunk-or-treat category", () => {
+  const r = validateHostInput(
+    trunk({ kind: "event", category: "trick_or_treat" }),
+    LOUISVILLE,
+    OPTS,
+  );
+  assert.ok(r.ok && r.value.category === "holiday");
+});
+
 test("unknown categories fall back to community", () => {
   const r = validateHostInput(trunk({ kind: "event", category: "rave" }), LOUISVILLE, OPTS);
   assert.ok(r.ok && r.value.category === "community");

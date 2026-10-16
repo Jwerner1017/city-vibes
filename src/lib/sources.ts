@@ -97,6 +97,8 @@ export type IncomingEvent = {
   website_url?: string | null;
   featured?: boolean;
   source?: string;
+  /** Day (YYYY-MM-DD) for the dedupe key when date_start's UTC day differs from the local one. */
+  key_date?: string;
 };
 
 export function decodeHtml(s: string) {
@@ -518,6 +520,19 @@ export async function fetchSocrata(
     );
 }
 
+/**
+ * Tribe's start_date/end_date are venue-local wall-clock times with no zone
+ * ("2026-10-15 17:00:00" = 5 PM in Louisville); read on a UTC server they land
+ * hours early. utc_start_date/utc_end_date are exact, so prefer those.
+ */
+function tribeInstant(ze: Record<string, unknown>, which: "start" | "end"): string {
+  const utc = ze[`utc_${which}_date`];
+  if (typeof utc === "string" && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(utc)) {
+    return `${utc.replace(" ", "T")}Z`;
+  }
+  return String(ze[`${which}_date`] || "");
+}
+
 export async function fetchTribe(feed: TribeFeed): Promise<IncomingEvent[]> {
   const today = new Date().toISOString().slice(0, 10);
   const events: IncomingEvent[] = [];
@@ -535,7 +550,7 @@ export async function fetchTribe(feed: TribeFeed): Promise<IncomingEvent[]> {
       const title = decodeHtml(String(ze.title || `${feed.name} Event`));
       const description = stripHtml(String(ze.description || ze.excerpt || ""));
       if (!isFamilyFriendly(title, description)) continue;
-      const startDate = String(ze.start_date || ze.date || "");
+      const startDate = tribeInstant(ze, "start") || String(ze.date || "");
       if (!startDate || new Date(startDate) < startOfToday()) continue;
       const imageObj = ze.image as { url?: string } | undefined;
       const image = imageObj?.url || (typeof ze.featured_image === "string" ? ze.featured_image : null);
@@ -562,7 +577,7 @@ export async function fetchTribe(feed: TribeFeed): Promise<IncomingEvent[]> {
         title,
         description,
         date_start: startDate,
-        date_end: String(ze.end_date || startDate),
+        date_end: tribeInstant(ze, "end") || startDate,
         location_name: venueName,
         address: venueAddress,
         latitude: lat,
@@ -571,6 +586,8 @@ export async function fetchTribe(feed: TribeFeed): Promise<IncomingEvent[]> {
         photos: image ? [image] : [],
         is_free: /free/i.test(`${title} ${description}`) && !/\$\d/.test(description),
         source: `tribe:${feed.name}`,
+        // Keys stay on the venue's local day, matching rows synced before the UTC fix.
+        key_date: String(ze.start_date || "").slice(0, 10) || undefined,
       });
     }
     next = data.next_rest_url || null;

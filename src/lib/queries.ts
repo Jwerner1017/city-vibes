@@ -1,14 +1,23 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getSql } from "@/lib/db";
-import type { City, EventCategory, EventItem, HolidayKey, Neighborhood } from "@/lib/types";
+import type {
+  City,
+  EventCategory,
+  EventItem,
+  HolidayKey,
+  ManagedEvent,
+  Neighborhood,
+} from "@/lib/types";
 import { boundingBox } from "@/lib/geo";
 import { RADIUS_MILES, VALID_CATEGORIES } from "@/lib/constants";
 import { coerceCategory, coerceHoliday, eventKey, isFamilyFriendly, toIso } from "@/lib/sources";
 import { areasForCity, nearestArea } from "@/lib/areas";
 import {
   HIDE_AFTER_REPORTS,
-  POSTS_PER_DAY,
-  POSTS_PER_IP_PER_DAY,
+  MAX_RESTORES,
+  POSTS_PER_CITY_PER_DAY,
+  POSTS_PER_DEVICE_PER_DAY,
+  POSTS_PER_NETWORK_PER_DAY,
   REPORT_REASONS,
   isWellFormedToken,
   validateHostInput,
@@ -41,6 +50,8 @@ type EventRow = {
   host_name: string | null;
   neighborhood: string | null;
   amenities_json: string | null;
+  report_count?: number;
+  restore_count?: number;
   status: string;
   featured: boolean;
   source: string | null;
@@ -182,7 +193,10 @@ export const getEvent = createServerFn({ method: "GET" })
     const sql = await getSql();
     const rows = await sql<EventRow>`
       select * from events
-      where id = ${data.id} and status not in ('hidden', 'rejected')
+      where id = ${data.id}
+        and status not in ('hidden', 'rejected')
+        -- A reported listing its host then cancelled stays out of view too.
+        and not (status = 'cancelled' and report_count >= ${HIDE_AFTER_REPORTS})
       limit 1
     `;
     if (!rows[0]) return null;
@@ -296,7 +310,7 @@ export const geocodeAddress = createServerFn({ method: "POST" })
     address: String(input?.address ?? "").slice(0, 300),
   }))
   .handler(async ({ data }) => {
-    const { clientKey, takeDailyQuota } = await import("./hosting.server");
+    const { takeVisitorQuota, visitor } = await import("./hosting.server");
     const { geocode } = await import("./geocode.server");
     const city = await cityById(data.cityId);
     if (!city) return { ok: false as const, error: "Pick a city first." };
@@ -304,7 +318,8 @@ export const geocodeAddress = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Type a street address or place name." };
     }
     const sql = await getSql();
-    if (!(await takeDailyQuota(sql, `geocode|${clientKey()}`, 80))) {
+    const who = await visitor(sql);
+    if (!(await takeVisitorQuota(sql, who, "geocode", { device: 80, network: 240 }))) {
       return { ok: false as const, error: "Too many lookups today — drop the pin by hand." };
     }
     const hit = await geocode(data.address, city, RADIUS_MILES);
@@ -330,17 +345,23 @@ export const geocodeAddress = createServerFn({ method: "POST" })
 export const createCommunityEvent = createServerFn({ method: "POST" })
   .validator(asHostInput)
   .handler(async ({ data }) => {
-    const { clientKey, hashToken, newManageToken, takeDailyQuota } =
+    const { hashToken, newManageToken, takeDailyQuota, takeVisitorQuota, visitor } =
       await import("./hosting.server");
     const city = await cityById(data.cityId);
     if (!city) throw new Error("Pick a city first.");
     const v = checkHostInput(data, city);
 
     const sql = await getSql();
-    if (!(await takeDailyQuota(sql, `post|${clientKey()}`, POSTS_PER_IP_PER_DAY))) {
+    const who = await visitor(sql);
+    if (
+      !(await takeVisitorQuota(sql, who, "post", {
+        device: POSTS_PER_DEVICE_PER_DAY,
+        network: POSTS_PER_NETWORK_PER_DAY,
+      }))
+    ) {
       throw new Error("You've posted the most listings allowed today. Try again tomorrow.");
     }
-    if (!(await takeDailyQuota(sql, "post|all", POSTS_PER_DAY))) {
+    if (!(await takeDailyQuota(sql, `post|city|${city.id}`, POSTS_PER_CITY_PER_DAY))) {
       throw new Error("Today's community listings are full. Try again tomorrow.");
     }
 
@@ -378,9 +399,13 @@ async function findManaged(token: string): Promise<EventRow | null> {
 /** The listing behind a manage link, for the host's edit screen. */
 export const getManagedEvent = createServerFn({ method: "POST" })
   .validator((input: { token: string }) => ({ token: tokenOrThrow(input?.token) }))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<ManagedEvent | null> => {
     const row = await findManaged(data.token);
-    return row ? mapEvent(row) : null;
+    if (!row) return null;
+    return {
+      ...mapEvent(row),
+      restores_left: Math.max(0, MAX_RESTORES - Number(row.restore_count ?? 0)),
+    };
   });
 
 export const updateCommunityEvent = createServerFn({ method: "POST" })
@@ -389,7 +414,7 @@ export const updateCommunityEvent = createServerFn({ method: "POST" })
     return { token: tokenOrThrow(o.token), listing: asHostInput(o) };
   })
   .handler(async ({ data }) => {
-    const { clientKey, takeDailyQuota } = await import("./hosting.server");
+    const { takeVisitorQuota, visitor } = await import("./hosting.server");
     const row = await findManaged(data.token);
     if (!row) throw new Error("That manage link doesn't match a listing.");
     if (row.status === "cancelled") throw new Error("This listing was cancelled.");
@@ -400,11 +425,19 @@ export const updateCommunityEvent = createServerFn({ method: "POST" })
     const v = checkHostInput({ ...data.listing, cityId: city.id, kind }, city);
 
     const sql = await getSql();
-    if (!(await takeDailyQuota(sql, `edit|${clientKey()}`, 60))) {
+    const who = await visitor(sql);
+    if (!(await takeVisitorQuota(sql, who, "edit", { device: 60, network: 200 }))) {
       throw new Error("Too many edits today. Try again tomorrow.");
     }
+    // A hidden listing comes back once when its host corrects it; its old
+    // reports are cleared so the same neighbors can flag it again if needed.
+    const restoring = row.status === "hidden" && Number(row.restore_count ?? 0) < MAX_RESTORES;
+    if (restoring) await sql`delete from event_reports where event_id = ${row.id}`;
     await sql`
       update events set
+        status = case when ${restoring}::boolean then 'approved' else status end,
+        report_count = case when ${restoring}::boolean then 0 else report_count end,
+        restore_count = restore_count + case when ${restoring}::boolean then 1 else 0 end,
         title = ${v.title}, description = ${v.description},
         date_start = ${v.date_start}, date_end = ${v.date_end},
         location_name = ${v.location_name}, address = ${v.address},
@@ -415,7 +448,7 @@ export const updateCommunityEvent = createServerFn({ method: "POST" })
         updated_at = now()
       where id = ${row.id}
     `;
-    return { id: Number(row.id) };
+    return { id: Number(row.id), restored: restoring };
   });
 
 export const cancelCommunityEvent = createServerFn({ method: "POST" })
@@ -429,9 +462,10 @@ export const cancelCommunityEvent = createServerFn({ method: "POST" })
   });
 
 /**
- * Neighbors flag a listing. Each network counts once per listing; community
- * listings hide after HIDE_AFTER_REPORTS distinct reports. Official feeds are
- * only logged, so nobody can knock the zoo off the map.
+ * Neighbors flag a listing. Each reporter (their network, or their device on a
+ * shared network) counts once per listing; community listings hide after
+ * HIDE_AFTER_REPORTS distinct reports. Official feeds are only logged, so nobody
+ * can knock the zoo off the map.
  */
 export const reportEvent = createServerFn({ method: "POST" })
   .validator((input: { id: number; reason: string }) => {
@@ -440,7 +474,7 @@ export const reportEvent = createServerFn({ method: "POST" })
     return { id: Number(input?.id), reason };
   })
   .handler(async ({ data }) => {
-    const { clientKey, takeDailyQuota } = await import("./hosting.server");
+    const { takeVisitorQuota, visitor } = await import("./hosting.server");
     const sql = await getSql();
     const event = (
       await sql<{ id: number; source: string | null; status: string }>`
@@ -449,8 +483,9 @@ export const reportEvent = createServerFn({ method: "POST" })
     )[0];
     if (!event || event.status !== "approved") return { ok: true as const, hidden: false };
 
-    const reporter = clientKey();
-    if (!(await takeDailyQuota(sql, `report|${reporter}`, 20))) {
+    const who = await visitor(sql);
+    const reporter = who.reporter;
+    if (!(await takeVisitorQuota(sql, who, "report", { device: 20, network: 40 }))) {
       throw new Error("Too many reports today. Thanks for looking out.");
     }
     await sql`
