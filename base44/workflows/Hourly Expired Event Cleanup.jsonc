@@ -1,0 +1,45 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 * * * *",
+      "one_time_date": null,
+      "timezone": "America/New_York",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Hourly Expired Event Cleanup",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "hourly_expired_event_cleanup",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "delete_expired": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "cleanupExpiredEvents",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Delete expired events",
+            "description": "Ended 24h+ ago"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Every hour, deletes events that ended more than 24 hours ago (permanent venues are kept)."
+}

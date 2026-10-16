@@ -360,9 +360,7 @@ async function pruneExpired(sql: Sql, cityId: number) {
     delete from events
     where city_id = ${cityId}
       and is_permanent = false
-      and holiday = 'none'
-      and source is distinct from 'community'
-      and date_end < now() - interval '1 day'
+      and coalesce(date_end, date_start) < now() - interval '24 hours'
   `;
 }
 
