@@ -10,7 +10,7 @@ import { distanceMiles } from "@/lib/geo";
 import { cn } from "@/lib/utils";
 import type { HolidayKey } from "@/lib/types";
 
-export const Route = createFileRoute("/holidays")({
+export const Route = createFileRoute("/holidays/")({
   component: HolidaysPage,
 });
 
@@ -84,7 +84,9 @@ function HolidaysPage() {
   return (
     <div className="min-h-dvh bg-bg pb-24">
       <header className="border-b border-border bg-surface px-4 pb-5 pt-[max(1rem,env(safe-area-inset-top))]">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">City Vibes</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+          City Vibes
+        </p>
         <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">Seasons</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           The holidays people actually plan around in {selectedCity.name}.
@@ -97,14 +99,14 @@ function HolidaysPage() {
             <div className="flex items-center justify-between overflow-hidden rounded-2xl bg-surface shadow-[var(--shadow-border)] transition-shadow hover:shadow-[var(--shadow-lift)]">
               <div className={cn("w-1.5 self-stretch", HOLIDAY_CONFIG[hub.key].colorClass)} />
               <div className="flex flex-1 items-center justify-between p-4">
-              <div>
-                <p className="font-display text-lg font-medium tracking-tight">{hub.title}</p>
-                <p className="mt-1 max-w-sm text-sm leading-relaxed text-muted-foreground">{hub.blurb}</p>
-                <p className="mt-2 text-xs tabular-nums text-muted-foreground">
-                  {count} listed
-                </p>
-              </div>
-              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                <div>
+                  <p className="font-display text-lg font-medium tracking-tight">{hub.title}</p>
+                  <p className="mt-1 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                    {hub.blurb}
+                  </p>
+                  <p className="mt-2 text-xs tabular-nums text-muted-foreground">{count} listed</p>
+                </div>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
               </div>
             </div>
           );

@@ -1,16 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
-import { ArrowLeft } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { ArrowLeft, Ghost } from "lucide-react";
 import { createCommunityEvent } from "@/lib/queries";
+import { rememberHosted } from "@/lib/hosted";
 import { useCity } from "@/components/city-provider";
-import { CATEGORY_CONFIG } from "@/lib/constants";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { EventCategory } from "@/lib/types";
+import { HostEventForm } from "@/components/host-event-form";
+import { HostSuccess } from "@/components/host-success";
 
 export const Route = createFileRoute("/create")({
   component: CreatePage,
@@ -18,38 +13,8 @@ export const Route = createFileRoute("/create")({
 
 function CreatePage() {
   const { selectedCity } = useCity();
-  const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await createCommunityEvent({
-        data: {
-          cityId: selectedCity.id,
-          title: String(form.get("title") || ""),
-          description: String(form.get("description") || ""),
-          date_start: String(form.get("date_start") || ""),
-          location_name: String(form.get("location_name") || selectedCity.name),
-          address: String(form.get("address") || `${selectedCity.name}, ${selectedCity.state_code}`),
-          latitude: selectedCity.latitude,
-          longitude: selectedCity.longitude,
-          category: String(form.get("category") || "community"),
-          is_free: form.get("is_free") === "on",
-          website_url: String(form.get("website_url") || "") || undefined,
-        },
-      });
-      await navigate({ to: "/event/$id", params: { id: String(result.id) } });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not post that.");
-    } finally {
-      setBusy(false);
-    }
-  };
+  const [done, setDone] = useState<{ id: number; token: string; title: string } | null>(null);
+  const [formKey, setFormKey] = useState(0);
 
   return (
     <div className="min-h-dvh bg-bg pb-16">
@@ -59,58 +24,50 @@ function CreatePage() {
         </Link>
         <h1 className="font-display text-xl font-semibold">Add an event</h1>
       </header>
-      <form onSubmit={onSubmit} className="mx-auto max-w-lg space-y-4 px-5 pt-4">
-        <p className="text-sm text-muted-foreground">
-          Public listings only — no names, no emails. Pins to {selectedCity.name}.
-        </p>
-        <div className="space-y-1.5">
-          <Label htmlFor="title">Name</Label>
-          <Input id="title" name="title" required placeholder="Waterfront concert" />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="date_start">Starts</Label>
-          <Input id="date_start" name="date_start" type="datetime-local" required />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="location_name">Place</Label>
-          <Input id="location_name" name="location_name" placeholder="Waterfront Park" />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="address">Address</Label>
-          <Input id="address" name="address" placeholder="129 E River Rd" />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="category">Category</Label>
-          <Select name="category" defaultValue="community">
-            <SelectTrigger id="category" className="h-11 w-full bg-surface">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-surface">
-              {(Object.keys(CATEGORY_CONFIG) as EventCategory[]).map((k) => (
-                <SelectItem key={k} value={k}>
-                  {CATEGORY_CONFIG[k].label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="description">What is it</Label>
-          <Textarea id="description" name="description" placeholder="Short and useful." />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="website_url">Link (optional)</Label>
-          <Input id="website_url" name="website_url" type="url" placeholder="https://" />
-        </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="is_free" defaultChecked className="size-4 accent-primary" />
-          Free to attend
-        </label>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button type="submit" className="w-full rounded-full" disabled={busy}>
-          {busy ? "Posting…" : "Publish"}
-        </Button>
-      </form>
+      <main className="mx-auto max-w-lg space-y-4 px-5 pt-4">
+        {done ? (
+          <HostSuccess
+            {...done}
+            onAnother={() => {
+              setDone(null);
+              setFormKey((k) => k + 1);
+              window.scrollTo({ top: 0 });
+            }}
+          />
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Public listings only — no personal names or emails. Pins to the address you enter in{" "}
+              {selectedCity.name}.
+            </p>
+            <Link
+              to="/holidays/halloween/host"
+              className="flex min-h-11 items-center gap-2 rounded-xl bg-accent/10 px-3 py-2 text-sm font-medium text-accent"
+            >
+              <Ghost className="size-4" /> Hosting a trunk-or-treat? Use the Halloween form →
+            </Link>
+            <HostEventForm
+              key={formKey}
+              mode="event"
+              city={selectedCity}
+              submitLabel="Publish"
+              busyLabel="Posting…"
+              onSubmit={async (payload) => {
+                const res = await createCommunityEvent({ data: payload });
+                const title = payload.title.trim();
+                rememberHosted({
+                  id: res.id,
+                  token: res.manageToken,
+                  title,
+                  date_start: payload.date_start,
+                });
+                setDone({ id: res.id, token: res.manageToken, title });
+                window.scrollTo({ top: 0 });
+              }}
+            />
+          </>
+        )}
+      </main>
     </div>
   );
 }

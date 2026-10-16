@@ -90,6 +90,16 @@ export function formatEventWhen(event: EventItem): string {
     return `${dateFmt.format(start)} – ${dateFmt.format(end)}`;
   }
   if (event.is_permanent) return "Open regularly";
+  // A same-evening window (incl. 6pm–12:30am) reads as a time range.
+  const span = end && !Number.isNaN(end.getTime()) ? end.getTime() - start.getTime() : 0;
+  if (end && span > 0 && span <= 18 * 3_600_000) {
+    return `${dateFmt.format(start)} · ${timeFmt.format(start)} – ${timeFmt.format(end)}`;
+  }
+  // A multi-day run that already started (Boo at the Zoo, pumpkin trails): say until when.
+  const now = Date.now();
+  if (end && span > 18 * 3_600_000 && start.getTime() < now && end.getTime() > now) {
+    return `Through ${dateFmt.format(end)}`;
+  }
   return `${dateFmt.format(start)} · ${timeFmt.format(start)}`;
 }
 
@@ -186,7 +196,10 @@ export function windowBounds(kind: "tonight" | "weekend" | "week" | "all"): {
 
 export function icsForEvent(event: EventItem): string {
   const stamp = (d: Date) =>
-    d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+    d
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}Z$/, "Z");
   const start = new Date(event.date_start);
   const end = new Date(event.date_end || event.date_start);
   if (end.getTime() <= start.getTime()) end.setHours(start.getHours() + 2);

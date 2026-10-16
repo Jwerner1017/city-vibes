@@ -39,7 +39,12 @@ export function EventCard({
               style={{ backgroundImage: `url(${photo})` }}
             />
           ) : event.is_permanent ? (
-            <div className={cn("flex size-14 shrink-0 items-center justify-center rounded-lg", cat.colorClass)}>
+            <div
+              className={cn(
+                "flex size-14 shrink-0 items-center justify-center rounded-lg",
+                cat.colorClass,
+              )}
+            >
               <Icon className="size-5 text-primary-foreground" />
             </div>
           ) : (
@@ -60,10 +65,12 @@ export function EventCard({
               <Clock className="size-3 shrink-0" />
               <span className="truncate">{when}</span>
             </p>
-            {event.location_name && (
+            {(event.location_name || event.neighborhood) && (
               <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="size-3 shrink-0" />
-                <span className="truncate">{event.location_name}</span>
+                <span className="truncate">
+                  {[event.location_name, event.neighborhood].filter(Boolean).join(" · ")}
+                </span>
               </p>
             )}
           </div>
@@ -91,7 +98,11 @@ export function EventCard({
     >
       <div className={cn("relative overflow-hidden bg-muted", featured ? "h-44" : "h-40")}>
         {photo ? (
-          <img src={photo} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+          <img
+            src={photo}
+            alt=""
+            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
         ) : (
           <div className={cn("flex size-full items-center justify-center", cat.colorClass)}>
             <Icon className="size-12 text-primary-foreground/80" />

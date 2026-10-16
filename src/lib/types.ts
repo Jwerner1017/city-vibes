@@ -65,7 +65,10 @@ export type EventItem = {
   website_url: string | null;
   venue_hours?: string | null;
   venue_phone?: string | null;
-  status: "pending" | "approved" | "rejected";
+  host_name: string | null;
+  neighborhood: string | null;
+  amenities: string[];
+  status: "pending" | "approved" | "rejected" | "cancelled" | "hidden";
   featured: boolean;
   source: string | null;
   is_running_event?: boolean;

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
+import { TILE_ATTRIBUTION, TILE_URL } from "@/lib/map-tiles";
 import { CATEGORY_CONFIG } from "@/lib/constants";
 import { formatEventWhen } from "@/lib/event-utils";
 import type { EventItem } from "@/lib/types";
@@ -39,8 +40,8 @@ export function EventMap({
         zoom: cityZoom || 12,
         zoomControl: false,
       });
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution: "&copy; OSM &copy; CARTO",
+      L.tileLayer(TILE_URL, {
+        attribution: TILE_ATTRIBUTION,
         maxZoom: 19,
       }).addTo(map);
       L.control.zoom({ position: "topright" }).addTo(map);
@@ -100,7 +101,9 @@ export function EventMap({
           iconAnchor: [w / 2, h - 2],
           popupAnchor: [0, -h + 8],
         });
-        const marker = L.marker([lat, lng], { icon, zIndexOffset: isSelected ? 800 : 0 }).addTo(map);
+        const marker = L.marker([lat, lng], { icon, zIndexOffset: isSelected ? 800 : 0 }).addTo(
+          map,
+        );
         marker.bindPopup(
           `<div style="min-width:170px;max-width:220px">
             <div style="font-family:Fraunces,Georgia,serif;font-weight:600;font-size:14px;line-height:1.25;margin-bottom:4px;">${escapeHtml(event.title)}</div>

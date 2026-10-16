@@ -13,16 +13,18 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as CitiesRouteImport } from './routes/cities'
 import { Route as CreateRouteImport } from './routes/create'
-import { Route as HolidaysRouteImport } from './routes/holidays'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ManageRouteImport } from './routes/manage'
 import { Route as NeighborhoodsRouteImport } from './routes/neighborhoods'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as EventIdRouteImport } from './routes/event.$id'
+import { Route as HolidaysIndexRouteImport } from './routes/holidays.index'
 import { Route as HolidaysChristmasRouteImport } from './routes/holidays.christmas'
-import { Route as HolidaysHalloweenRouteImport } from './routes/holidays.halloween'
 import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as ApiCronSyncRouteImport } from './routes/api/cron/sync'
+import { Route as HolidaysHalloweenIndexRouteImport } from './routes/holidays.halloween.index'
+import { Route as HolidaysHalloweenHostRouteImport } from './routes/holidays.halloween.host'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -44,14 +46,14 @@ const CreateRoute = CreateRouteImport.update({
   path: '/create',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HolidaysRoute = HolidaysRouteImport.update({
-  id: '/holidays',
-  path: '/holidays',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageRoute = ManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NeighborhoodsRoute = NeighborhoodsRouteImport.update({
@@ -74,15 +76,15 @@ const EventIdRoute = EventIdRouteImport.update({
   path: '/event/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HolidaysChristmasRoute = HolidaysChristmasRouteImport.update({
-  id: '/christmas',
-  path: '/christmas',
-  getParentRoute: () => HolidaysRoute,
+const HolidaysIndexRoute = HolidaysIndexRouteImport.update({
+  id: '/holidays/',
+  path: '/holidays/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const HolidaysHalloweenRoute = HolidaysHalloweenRouteImport.update({
-  id: '/halloween',
-  path: '/halloween',
-  getParentRoute: () => HolidaysRoute,
+const HolidaysChristmasRoute = HolidaysChristmasRouteImport.update({
+  id: '/holidays/christmas',
+  path: '/holidays/christmas',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const OauthConsentRoute = OauthConsentRouteImport.update({
   id: '/oauth/consent',
@@ -94,38 +96,52 @@ const ApiCronSyncRoute = ApiCronSyncRouteImport.update({
   path: '/api/cron/sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HolidaysHalloweenIndexRoute = HolidaysHalloweenIndexRouteImport.update({
+  id: '/holidays/halloween/',
+  path: '/holidays/halloween/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HolidaysHalloweenHostRoute = HolidaysHalloweenHostRouteImport.update({
+  id: '/holidays/halloween/host',
+  path: '/holidays/halloween/host',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/cities': typeof CitiesRoute
   '/create': typeof CreateRoute
-  '/holidays': typeof HolidaysRouteWithChildren
   '/login': typeof LoginRoute
+  '/manage': typeof ManageRoute
   '/neighborhoods': typeof NeighborhoodsRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
-  '/holidays/halloween': typeof HolidaysHalloweenRoute
   '/oauth/consent': typeof OauthConsentRoute
+  '/holidays/': typeof HolidaysIndexRoute
   '/api/cron/sync': typeof ApiCronSyncRoute
+  '/holidays/halloween/host': typeof HolidaysHalloweenHostRoute
+  '/holidays/halloween/': typeof HolidaysHalloweenIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/cities': typeof CitiesRoute
   '/create': typeof CreateRoute
-  '/holidays': typeof HolidaysRouteWithChildren
   '/login': typeof LoginRoute
+  '/manage': typeof ManageRoute
   '/neighborhoods': typeof NeighborhoodsRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
-  '/holidays/halloween': typeof HolidaysHalloweenRoute
   '/oauth/consent': typeof OauthConsentRoute
+  '/holidays': typeof HolidaysIndexRoute
   '/api/cron/sync': typeof ApiCronSyncRoute
+  '/holidays/halloween/host': typeof HolidaysHalloweenHostRoute
+  '/holidays/halloween': typeof HolidaysHalloweenIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -133,16 +149,18 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/cities': typeof CitiesRoute
   '/create': typeof CreateRoute
-  '/holidays': typeof HolidaysRouteWithChildren
   '/login': typeof LoginRoute
+  '/manage': typeof ManageRoute
   '/neighborhoods': typeof NeighborhoodsRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
-  '/holidays/halloween': typeof HolidaysHalloweenRoute
   '/oauth/consent': typeof OauthConsentRoute
+  '/holidays/': typeof HolidaysIndexRoute
   '/api/cron/sync': typeof ApiCronSyncRoute
+  '/holidays/halloween/host': typeof HolidaysHalloweenHostRoute
+  '/holidays/halloween/': typeof HolidaysHalloweenIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,48 +169,54 @@ export interface FileRouteTypes {
     | '/about'
     | '/cities'
     | '/create'
-    | '/holidays'
     | '/login'
+    | '/manage'
     | '/neighborhoods'
     | '/profile'
     | '/saved'
     | '/event/$id'
     | '/holidays/christmas'
-    | '/holidays/halloween'
     | '/oauth/consent'
+    | '/holidays/'
     | '/api/cron/sync'
+    | '/holidays/halloween/host'
+    | '/holidays/halloween/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/cities'
     | '/create'
-    | '/holidays'
     | '/login'
+    | '/manage'
     | '/neighborhoods'
     | '/profile'
     | '/saved'
     | '/event/$id'
     | '/holidays/christmas'
-    | '/holidays/halloween'
     | '/oauth/consent'
+    | '/holidays'
     | '/api/cron/sync'
+    | '/holidays/halloween/host'
+    | '/holidays/halloween'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/cities'
     | '/create'
-    | '/holidays'
     | '/login'
+    | '/manage'
     | '/neighborhoods'
     | '/profile'
     | '/saved'
     | '/event/$id'
     | '/holidays/christmas'
-    | '/holidays/halloween'
     | '/oauth/consent'
+    | '/holidays/'
     | '/api/cron/sync'
+    | '/holidays/halloween/host'
+    | '/holidays/halloween/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -200,14 +224,18 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   CitiesRoute: typeof CitiesRoute
   CreateRoute: typeof CreateRoute
-  HolidaysRoute: typeof HolidaysRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ManageRoute: typeof ManageRoute
   NeighborhoodsRoute: typeof NeighborhoodsRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
   EventIdRoute: typeof EventIdRoute
+  HolidaysChristmasRoute: typeof HolidaysChristmasRoute
   OauthConsentRoute: typeof OauthConsentRoute
+  HolidaysIndexRoute: typeof HolidaysIndexRoute
   ApiCronSyncRoute: typeof ApiCronSyncRoute
+  HolidaysHalloweenHostRoute: typeof HolidaysHalloweenHostRoute
+  HolidaysHalloweenIndexRoute: typeof HolidaysHalloweenIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -240,18 +268,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/holidays': {
-      id: '/holidays'
-      path: '/holidays'
-      fullPath: '/holidays'
-      preLoaderRoute: typeof HolidaysRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage': {
+      id: '/manage'
+      path: '/manage'
+      fullPath: '/manage'
+      preLoaderRoute: typeof ManageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/neighborhoods': {
@@ -282,19 +310,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/holidays/': {
+      id: '/holidays/'
+      path: '/holidays'
+      fullPath: '/holidays/'
+      preLoaderRoute: typeof HolidaysIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/holidays/christmas': {
       id: '/holidays/christmas'
-      path: '/christmas'
+      path: '/holidays/christmas'
       fullPath: '/holidays/christmas'
       preLoaderRoute: typeof HolidaysChristmasRouteImport
-      parentRoute: typeof HolidaysRoute
-    }
-    '/holidays/halloween': {
-      id: '/holidays/halloween'
-      path: '/halloween'
-      fullPath: '/holidays/halloween'
-      preLoaderRoute: typeof HolidaysHalloweenRouteImport
-      parentRoute: typeof HolidaysRoute
+      parentRoute: typeof rootRouteImport
     }
     '/oauth/consent': {
       id: '/oauth/consent'
@@ -310,36 +338,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCronSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/holidays/halloween/': {
+      id: '/holidays/halloween/'
+      path: '/holidays/halloween'
+      fullPath: '/holidays/halloween/'
+      preLoaderRoute: typeof HolidaysHalloweenIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/holidays/halloween/host': {
+      id: '/holidays/halloween/host'
+      path: '/holidays/halloween/host'
+      fullPath: '/holidays/halloween/host'
+      preLoaderRoute: typeof HolidaysHalloweenHostRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
-
-interface HolidaysRouteChildren {
-  HolidaysChristmasRoute: typeof HolidaysChristmasRoute
-  HolidaysHalloweenRoute: typeof HolidaysHalloweenRoute
-}
-
-const HolidaysRouteChildren: HolidaysRouteChildren = {
-  HolidaysChristmasRoute: HolidaysChristmasRoute,
-  HolidaysHalloweenRoute: HolidaysHalloweenRoute,
-}
-
-const HolidaysRouteWithChildren = HolidaysRoute._addFileChildren(
-  HolidaysRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   CitiesRoute: CitiesRoute,
   CreateRoute: CreateRoute,
-  HolidaysRoute: HolidaysRouteWithChildren,
   LoginRoute: LoginRoute,
+  ManageRoute: ManageRoute,
   NeighborhoodsRoute: NeighborhoodsRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
   EventIdRoute: EventIdRoute,
+  HolidaysChristmasRoute: HolidaysChristmasRoute,
   OauthConsentRoute: OauthConsentRoute,
+  HolidaysIndexRoute: HolidaysIndexRoute,
   ApiCronSyncRoute: ApiCronSyncRoute,
+  HolidaysHalloweenHostRoute: HolidaysHalloweenHostRoute,
+  HolidaysHalloweenIndexRoute: HolidaysHalloweenIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
