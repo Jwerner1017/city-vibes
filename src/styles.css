@@ -46,6 +46,10 @@
   --color-muted-foreground: #5f5a52;
   --color-primary: #1f6b4a;
   --color-primary-foreground: #f7f4ec;
+  /* Text on photos and category fills, and the scrim behind it. Not redefined
+     for dark mode: those backgrounds stay saturated/dark in both themes. */
+  --color-on-media: #f7f4ec;
+  --color-scrim: #1a1916;
   --color-accent: #2c4a3e;
   --color-accent-foreground: #f7f4ec;
   --color-secondary: #d9d1c0;

@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
+import { TILE_ATTRIBUTION, TILE_URL } from "@/lib/map-tiles";
 import { CATEGORY_CONFIG } from "@/lib/constants";
 import { formatEventWhen } from "@/lib/event-utils";
 import type { EventItem } from "@/lib/types";
@@ -23,7 +24,9 @@ export function EventMap({
   const mapInstance = useRef<import("leaflet").Map | null>(null);
   const markersRef = useRef<import("leaflet").Marker[]>([]);
   const onTapRef = useRef(onEventTap);
-  const readyRef = useRef(false);
+  // Leaflet loads asynchronously; pins already in hand (cached data on a back
+  // navigation) must redraw once the map exists, so readiness is state, not a ref.
+  const [ready, setReady] = useState(false);
   onTapRef.current = onEventTap;
 
   useEffect(() => {
@@ -39,19 +42,19 @@ export function EventMap({
         zoom: cityZoom || 12,
         zoomControl: false,
       });
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution: "&copy; OSM &copy; CARTO",
+      L.tileLayer(TILE_URL, {
+        attribution: TILE_ATTRIBUTION,
         maxZoom: 19,
       }).addTo(map);
       L.control.zoom({ position: "topright" }).addTo(map);
       mapInstance.current = map;
-      readyRef.current = true;
+      setReady(true);
     })();
     return () => {
       cancelled = true;
       mapInstance.current?.remove();
       mapInstance.current = null;
-      readyRef.current = false;
+      setReady(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -100,7 +103,9 @@ export function EventMap({
           iconAnchor: [w / 2, h - 2],
           popupAnchor: [0, -h + 8],
         });
-        const marker = L.marker([lat, lng], { icon, zIndexOffset: isSelected ? 800 : 0 }).addTo(map);
+        const marker = L.marker([lat, lng], { icon, zIndexOffset: isSelected ? 800 : 0 }).addTo(
+          map,
+        );
         marker.bindPopup(
           `<div style="min-width:170px;max-width:220px">
             <div style="font-family:Fraunces,Georgia,serif;font-weight:600;font-size:14px;line-height:1.25;margin-bottom:4px;">${escapeHtml(event.title)}</div>
@@ -121,7 +126,7 @@ export function EventMap({
     return () => {
       cancelled = true;
     };
-  }, [events, selectedId]);
+  }, [events, selectedId, ready]);
 
   const prevCity = useRef<string | null>(null);
   useEffect(() => {
@@ -133,7 +138,7 @@ export function EventMap({
     if (prevCity.current === key) return;
     prevCity.current = key;
     map.flyTo([lat, lng], cityZoom || 12, { animate: true, duration: 1.1 });
-  }, [cityCenter, cityZoom]);
+  }, [cityCenter, cityZoom, ready]);
 
   return <div ref={mapRef} className="size-full" />;
 }

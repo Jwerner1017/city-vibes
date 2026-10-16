@@ -5,22 +5,37 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { authClient } from "@/lib/auth/client";
+import { authClient, signOut } from "@/lib/auth/client";
+import { SAVED_KEY } from "@/lib/constants";
 
 export function DeleteAccountDialog() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsFreshSignIn, setNeedsFreshSignIn] = useState(false);
 
   const handleDelete = async () => {
     setBusy(true);
     setError(null);
+    setNeedsFreshSignIn(false);
     const { error: err } = await authClient.deleteUser();
     if (err) {
-      setError(err.message ?? "Could not delete account. Try again.");
+      // Deleting needs a sign-in from the last day; older sessions get SESSION_EXPIRED.
+      if (err.code === "SESSION_EXPIRED") {
+        setNeedsFreshSignIn(true);
+        setError("For your safety, sign in again, then tap Delete account.");
+      } else {
+        setError(err.message ?? "Could not delete account. Try again.");
+      }
       setBusy(false);
       return;
     }
-    localStorage.clear();
+    // Clear only what the dialog promises. Trunk-or-treat edit links live on this
+    // device (not the account) and can't be recovered, so they stay.
+    try {
+      localStorage.removeItem(SAVED_KEY);
+    } catch {
+      // Storage unavailable: nothing to clear.
+    }
     window.location.href = "/";
   };
 
@@ -32,6 +47,15 @@ export function DeleteAccountDialog() {
         </Button>
       </AlertDialogTrigger>
       {error && <p className="mt-2 text-center text-sm text-destructive">{error}</p>}
+      {needsFreshSignIn && (
+        <Button
+          variant="outline"
+          className="mt-2 h-11 w-full rounded-xl"
+          onClick={() => void signOut("/login")}
+        >
+          Sign in again
+        </Button>
+      )}
       <AlertDialogContent className="bg-surface">
         <AlertDialogHeader>
           <AlertDialogTitle>Delete your account?</AlertDialogTitle>

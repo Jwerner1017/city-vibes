@@ -8,8 +8,11 @@ import {
   ExternalLink,
   Heart,
   MapPin,
+  Pencil,
   Phone,
   Share2,
+  Sparkles,
+  Users,
 } from "lucide-react";
 import { getEvent } from "@/lib/queries";
 import { CATEGORY_CONFIG, HOLIDAY_CONFIG } from "@/lib/constants";
@@ -19,6 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { safeHttpUrl } from "@/lib/safe-url";
+import { amenityLabel } from "@/lib/areas";
+import { hostedTokenFor, manageUrl, subscribeHosted } from "@/lib/hosted";
+import { ReportListing } from "@/components/report-listing";
 
 export const Route = createFileRoute("/event/$id")({
   loader: async ({ params }) => {
@@ -43,12 +49,23 @@ function EventDetail() {
   const Icon = cat.icon;
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [manageToken, setManageToken] = useState<string | null>(null);
 
   useEffect(() => {
     const sync = () => setSaved(getSavedIds().includes(event.id));
     sync();
     return subscribeSaved(sync);
   }, [event.id]);
+
+  useEffect(() => {
+    const sync = () => setManageToken(hostedTokenFor(event.id));
+    sync();
+    return subscribeHosted(sync);
+  }, [event.id]);
+
+  const cancelled = event.status === "cancelled";
+  const community = event.source === "community";
+  const amenities = event.amenities.map(amenityLabel).filter((x): x is string => !!x);
 
   const photo = event.photos[0];
   const holiday = event.holiday !== "none" ? HOLIDAY_CONFIG[event.holiday] : null;
@@ -85,10 +102,10 @@ function EventDetail() {
           <img src={photo} alt="" className="size-full object-cover" />
         ) : (
           <div className={cn("flex size-full items-center justify-center", cat.colorClass)}>
-            <Icon className="size-16 text-primary-foreground/75" />
+            <Icon className="size-16 text-on-media/75" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-fg via-fg/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-scrim via-scrim/20 to-transparent" />
         <Link
           to="/"
           className="absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] flex size-11 items-center justify-center rounded-full bg-surface/95 shadow-[var(--shadow-border)]"
@@ -103,7 +120,7 @@ function EventDetail() {
         >
           <Heart className={cn("size-5", saved && "fill-primary text-primary")} />
         </button>
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-5 text-primary-foreground">
+        <div className="absolute inset-x-0 bottom-0 px-5 pb-5 text-on-media">
           <div className="mb-2 flex flex-wrap gap-1.5">
             <span
               className={cn(
@@ -124,6 +141,29 @@ function EventDetail() {
       </div>
 
       <div className="mx-auto max-w-lg px-5 pt-5">
+        {cancelled && (
+          <p
+            role="status"
+            className="mb-4 rounded-xl bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive"
+          >
+            Cancelled by the host — this one isn't happening.
+          </p>
+        )}
+        {manageToken && !cancelled && (
+          <Button asChild variant="outline" className="mb-4 w-full rounded-full">
+            <a href={manageUrl(manageToken)}>
+              <Pencil /> You posted this — edit or cancel
+            </a>
+          </Button>
+        )}
+        {event.host_name && (
+          <p className="mb-3 flex items-center gap-2 text-sm">
+            <Users className="size-4 shrink-0 text-primary" />
+            <span>
+              Hosted by <span className="font-medium">{event.host_name}</span>
+            </span>
+          </p>
+        )}
         <p className="flex items-center gap-2 text-sm">
           <Clock className="size-4 shrink-0 text-primary" />
           {formatEventWhen(event)}
@@ -138,8 +178,10 @@ function EventDetail() {
             <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
             <span>
               <span className="font-medium">{event.location_name}</span>
-              {event.address && (
-                <span className="mt-0.5 block text-xs text-muted-foreground">{event.address}</span>
+              {(event.address || event.neighborhood) && (
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  {[event.address, event.neighborhood].filter(Boolean).join(" · ")}
+                </span>
               )}
             </span>
           </a>
@@ -162,8 +204,23 @@ function EventDetail() {
             {event.venue_phone}
           </a>
         )}
+        {amenities.length > 0 && (
+          <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Good to know">
+            {amenities.map((a) => (
+              <li
+                key={a}
+                className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs"
+              >
+                <Sparkles className="size-3 text-primary" />
+                {a}
+              </li>
+            ))}
+          </ul>
+        )}
         {event.description && (
-          <p className="mt-6 text-[15px] leading-relaxed text-fg/85">{event.description}</p>
+          <p className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-fg/85">
+            {event.description}
+          </p>
         )}
         {safeHttpUrl(event.website_url) && (
           <a
@@ -173,8 +230,14 @@ function EventDetail() {
             className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary"
           >
             <ExternalLink className="size-4" />
-            Official page
+            {community ? "More info" : "Official page"}
           </a>
+        )}
+        {!cancelled && !manageToken && <ReportListing eventId={event.id} />}
+        {community && (
+          <p className="mt-6 text-xs text-muted-foreground">
+            Posted by the community. Double-check details with the host before you go.
+          </p>
         )}
       </div>
 
