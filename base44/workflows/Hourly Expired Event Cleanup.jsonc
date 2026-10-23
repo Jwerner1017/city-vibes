@@ -5,7 +5,7 @@
       "trigger_type": "scheduled",
       "events": [],
       "schedule_mode": "recurring",
-      "cron_expression": "0 * * * *",
+      "cron_expression": "0 3 * * *",
       "one_time_date": null,
       "timezone": "America/New_York",
       "interval_value": null,
@@ -16,11 +16,11 @@
       "ends_after_count": null
     }
   },
-  "name": "Hourly Expired Event Cleanup",
+  "name": "Daily Expired Event Cleanup",
   "definition": {
     "document": {
       "dsl": "1.0.0",
-      "name": "hourly_expired_event_cleanup",
+      "name": "daily_expired_event_cleanup",
       "version": "1.0",
       "namespace": "base44"
     },
@@ -41,5 +41,5 @@
       }
     ]
   },
-  "description": "Every hour, deletes events that ended more than 24 hours ago (permanent venues are kept)."
+  "description": "Every day at 3 AM Eastern, deletes events that ended more than 24 hours ago (permanent venues are kept)."
 }
