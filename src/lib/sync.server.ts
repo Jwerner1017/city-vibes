@@ -145,6 +145,10 @@ export async function runScheduledSync(opts?: {
           await sql<CityRow>`select * from cities where id = ${opts.cityId} limit 1`
         )[0];
         if (!city) return { cities: [], next_batch: 0, reason: "city_not_found" };
+        // Fresh city: serve stored events instantly instead of re-pulling on every visit.
+        if (city.last_synced_at && Date.now() - new Date(city.last_synced_at).getTime() < STALE_MS) {
+          return { skipped: true, reason: "fresh", cities: [], next_batch: 0 };
+        }
         const one = await syncCity(sql, city);
         return { cities: [one], next_batch: 0, job: "single-city" };
       }
