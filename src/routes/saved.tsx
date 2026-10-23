@@ -7,6 +7,7 @@ import { useCity } from "@/components/city-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { EventCard } from "@/components/event-card";
 import PullToRefresh from "@/components/PullToRefresh";
+import { SavedReminders } from "@/components/saved-reminders";
 import { getSavedIds, subscribeSaved } from "@/lib/saved";
 
 export const Route = createFileRoute("/saved")({
@@ -50,6 +51,7 @@ function SavedPage() {
         </p>
       </header>
       <div className="px-4 pt-4">
+        <div className="mb-4"><SavedReminders /></div>
         {saved.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-16 text-center">
             <Heart className="mb-3 size-10 text-muted-foreground/40" />
