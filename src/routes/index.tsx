@@ -19,6 +19,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { EventMap } from "@/components/event-map";
 import { EventCard } from "@/components/event-card";
 import PullToRefresh from "@/components/PullToRefresh";
+import { SavedReminders } from "@/components/saved-reminders";
 import { FilterBar } from "@/components/filter-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { eventsOnDate, groupEventsByDay, groupRunningEvents, windowBounds } from "@/lib/event-utils";
@@ -216,6 +217,8 @@ function DiscoverInner() {
           </p>
         )}
       </header>
+
+      <div className="px-4 pt-3 empty:hidden"><SavedReminders /></div>
 
       <div className="relative min-h-0 flex-1 overflow-hidden">
         {eventsQuery.isLoading ? (
