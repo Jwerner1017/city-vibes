@@ -1,3 +1,4 @@
+import { getRequest } from "@tanstack/react-start/server";
 import { pendingMigrations } from "../../scripts/migration-plan.mjs";
 
 /** Which database backend is active. */
@@ -9,6 +10,10 @@ const databaseUrl =
   rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
 
 export const dbSource: DbSource = databaseUrl ? "neon" : "pglite";
+
+/** Base44 hosting runs the server as a Cloudflare Worker. */
+const onWorkers =
+  typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
 
 export interface Sql {
   <T = Record<string, unknown>>(
@@ -48,18 +53,20 @@ function toSql(run: Run): Sql {
   return sql;
 }
 
+async function openPool(): Promise<Sql> {
+  const { Pool, types } = await import("pg");
+  types.setTypeParser(OID_INT8, Number);
+  types.setTypeParser(OID_DATE, identity);
+  types.setTypeParser(OID_INTERVAL, identity);
+  const pool = new Pool({ connectionString: databaseUrl });
+  return toSql(async <T>(text: string, params: unknown[]) => {
+    const res = await pool.query(text, params);
+    return res.rows as T[];
+  });
+}
+
 function createNeonSql(): Promise<Sql> {
-  globalRef.__pgSqlPromise__ ??= (async () => {
-    const { Pool, types } = await import("pg");
-    types.setTypeParser(OID_INT8, Number);
-    types.setTypeParser(OID_DATE, identity);
-    types.setTypeParser(OID_INTERVAL, identity);
-    const pool = new Pool({ connectionString: databaseUrl });
-    return toSql(async <T>(text: string, params: unknown[]) => {
-      const res = await pool.query(text, params);
-      return res.rows as T[];
-    });
-  })().catch((err) => {
+  globalRef.__pgSqlPromise__ ??= openPool().catch((err) => {
     globalRef.__pgSqlPromise__ = undefined;
     throw err;
   });
@@ -125,10 +132,29 @@ async function createSql(): Promise<Sql> {
         "or a server route loader, never from client code.",
     );
   }
+  if (onWorkers && dbSource === "pglite") {
+    throw new Error(
+      "DATABASE_URL is not set. The in-memory database only runs in local dev; " +
+        "Base44 hosting needs a Postgres connection string in DATABASE_URL.",
+    );
+  }
   return dbSource === "neon" ? createNeonSql() : createPgliteSql();
 }
 
+// A Worker can't reuse a socket opened by another request (the request hangs),
+// so on Base44 hosting each request gets its own pool.
+const requestPools = new WeakMap<Request, Promise<Sql>>();
+
 export function getSql(): Promise<Sql> {
+  if (onWorkers && dbSource === "neon") {
+    const request = getRequest();
+    let pool = requestPools.get(request);
+    if (!pool) {
+      pool = openPool();
+      requestPools.set(request, pool);
+    }
+    return pool;
+  }
   sqlPromise ??= createSql().catch((err) => {
     sqlPromise = null;
     throw err;

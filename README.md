@@ -26,18 +26,21 @@ npm run build
 npm run typecheck
 ```
 
-## Production
+## Production (Base44)
 
-The Grok publish step provisions Neon (`DATABASE_URL`) because this app ships
-SQL migrations and `deploy.database` is on. First visitor seeds Louisville;
-Vercel cron keeps the calendars fresh:
+`npm run build` writes a Cloudflare Workers bundle (`.output/server`, with
+`.wrangler/deploy/config.json` pointing at it). That is the full-stack format
+Base44 hosting deploys.
 
-- 11:00 UTC — Louisville morning (≈ 7am Eastern)
-- 16:00 UTC — rolling other-city batch
-- 22:00 UTC — Louisville evening / tonight
-
-Set optional `CRON_SECRET` on the host if you want the sync URL locked down.
-Vercel Cron already sends `x-vercel-cron: 1`.
+- **Database:** set `DATABASE_URL` to a Postgres connection string. Without it
+  the app falls back to an in-memory database that only runs in local dev; on
+  Base44 hosting every page fails with a "DATABASE_URL is not set" error.
+  `npm run build` applies `migrations/` when `DATABASE_URL` is set at build time.
+- **Health check:** open `/api/health`. `"persistent": true` means a real
+  database. If `database_created_at` changes between visits, data is being wiped.
+- **Fresh calendars:** each city re-syncs on the first visit after 4 hours.
+  To also sync on a schedule, set `CRON_SECRET` and call `/api/cron/sync` with
+  `Authorization: Bearer <CRON_SECRET>`.
 
 ## Layout
 
@@ -48,4 +51,4 @@ Vercel Cron already sends `x-vercel-cron: 1`.
 
 ## Stack
 
-TanStack Start, React 19, Tailwind v4, Leaflet, PGLite / Neon.
+TanStack Start, React 19, Tailwind v4, Leaflet, Postgres (PGLite in local dev).

@@ -45,5 +45,6 @@ not affect `vite build` or the dev server.
 
 - Dev server: `npm run dev` (Vite on port 8080). Uses PGLite in-browser when
   `DATABASE_URL` is unset — no external database needed for local dev.
-- `npm run build` runs `vite build` (Vercel/Nitro output) then `db:migrate`.
+- `npm run build` runs `vite build` (Nitro `cloudflare-module` output in `.output/`, which Base44 hosting deploys) then `db:migrate`.
+- Do not add a root `index.html`: Nitro would serve it as the page for every route instead of the TanStack app.
 - Run the relevant checks from `package.json` before finishing code changes.

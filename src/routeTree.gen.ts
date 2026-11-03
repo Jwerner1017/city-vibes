@@ -18,6 +18,7 @@ import { Route as ManageRouteImport } from './routes/manage'
 import { Route as NeighborhoodsRouteImport } from './routes/neighborhoods'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SavedRouteImport } from './routes/saved'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as EventIdRouteImport } from './routes/event.$id'
 import { Route as HolidaysIndexRouteImport } from './routes/holidays.index'
 import { Route as HolidaysChristmasRouteImport } from './routes/holidays.christmas'
@@ -71,6 +72,11 @@ const SavedRoute = SavedRouteImport.update({
   path: '/saved',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventIdRoute = EventIdRouteImport.update({
   id: '/event/$id',
   path: '/event/$id',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/neighborhoods': typeof NeighborhoodsRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/api/health': typeof ApiHealthRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
   '/oauth/consent': typeof OauthConsentRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/neighborhoods': typeof NeighborhoodsRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/api/health': typeof ApiHealthRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
   '/oauth/consent': typeof OauthConsentRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/neighborhoods': typeof NeighborhoodsRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
+  '/api/health': typeof ApiHealthRoute
   '/event/$id': typeof EventIdRoute
   '/holidays/christmas': typeof HolidaysChristmasRoute
   '/oauth/consent': typeof OauthConsentRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/neighborhoods'
     | '/profile'
     | '/saved'
+    | '/api/health'
     | '/event/$id'
     | '/holidays/christmas'
     | '/oauth/consent'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/neighborhoods'
     | '/profile'
     | '/saved'
+    | '/api/health'
     | '/event/$id'
     | '/holidays/christmas'
     | '/oauth/consent'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/neighborhoods'
     | '/profile'
     | '/saved'
+    | '/api/health'
     | '/event/$id'
     | '/holidays/christmas'
     | '/oauth/consent'
@@ -229,6 +241,7 @@ export interface RootRouteChildren {
   NeighborhoodsRoute: typeof NeighborhoodsRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   EventIdRoute: typeof EventIdRoute
   HolidaysChristmasRoute: typeof HolidaysChristmasRoute
   OauthConsentRoute: typeof OauthConsentRoute
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SavedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/event/$id': {
       id: '/event/$id'
       path: '/event/$id'
@@ -365,6 +385,7 @@ const rootRouteChildren: RootRouteChildren = {
   NeighborhoodsRoute: NeighborhoodsRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
+  ApiHealthRoute: ApiHealthRoute,
   EventIdRoute: EventIdRoute,
   HolidaysChristmasRoute: HolidaysChristmasRoute,
   OauthConsentRoute: OauthConsentRoute,
