@@ -137,15 +137,11 @@ export default defineConfig(({ command, isPreview }) => ({
     tanstackStart(),
     ...(command === "build" || isPreview
       ? [
+          // Base44 hosting deploys the Workers bundle this preset writes
+          // (.wrangler/deploy/config.json -> .output/server).
           nitro({
-            preset: "vercel",
+            preset: "cloudflare-module",
             serverDir: "./server",
-            vercel: {
-              functions: {
-                maxDuration: 60,
-                memory: 1024,
-              },
-            },
           }),
         ]
       : []),

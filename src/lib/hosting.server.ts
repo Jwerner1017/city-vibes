@@ -19,17 +19,17 @@ const DEVICE_COOKIE = "cv_device";
 const SHARED_NETWORK_DEVICES = 10;
 
 /**
- * The visitor's network. On Vercel only headers Vercel itself sets are used
- * (it overwrites them, so clients can't forge them); elsewhere — Base44
- * preview, local dev — the proxy chain is the best signal there is.
+ * The visitor's network. On Base44 hosting (a Cloudflare Worker) only
+ * cf-connecting-ip is used: Cloudflare overwrites it, so clients can't forge
+ * it. Elsewhere — Base44 preview, local dev — the proxy chain is the best
+ * signal there is.
  */
 function networkIp(): string | undefined {
   try {
-    const real = getRequestHeader("x-real-ip")?.trim();
-    if (process.env.VERCEL) {
-      const vercel = getRequestHeader("x-vercel-forwarded-for")?.split(",")[0]?.trim();
-      return vercel || real || undefined;
+    if (typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers") {
+      return getRequestHeader("cf-connecting-ip")?.trim() || undefined;
     }
+    const real = getRequestHeader("x-real-ip")?.trim();
     return real || getRequestIP({ xForwardedFor: true }) || undefined;
   } catch {
     return undefined;
