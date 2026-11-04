@@ -1,1 +1,0 @@
-var e=[{key:`wrong_info`,label:`Wrong time or place`},{key:`cancelled`,label:`It's cancelled`},{key:`duplicate`,label:`Duplicate listing`},{key:`spam`,label:`Spam or ad`},{key:`inappropriate`,label:`Not family-friendly`}],t=864e5;14*t,400*t;function n(e){return typeof e==`string`&&/^[A-Za-z0-9_-]{40,64}$/.test(e)}export{n,e as t};

@@ -1,1 +1,0 @@
-function e(e,t,n,r){let i=(n-e)*Math.PI/180,a=(r-t)*Math.PI/180,o=Math.sin(i/2)**2+Math.cos(e*Math.PI/180)*Math.cos(n*Math.PI/180)*Math.sin(a/2)**2;return 7917.6*Math.atan2(Math.sqrt(o),Math.sqrt(1-o))}export{e as t};
