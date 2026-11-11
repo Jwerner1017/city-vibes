@@ -12,7 +12,9 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { listEvents, runSync } from "@/lib/queries";
+import { listEvents, listNeighborhoods, runSync } from "@/lib/queries";
+import { areasForCity, eventArea } from "@/lib/areas";
+import { NeighborhoodFilter } from "@/components/neighborhood-filter";
 import { useCity } from "@/components/city-provider";
 import { CitySelector } from "@/components/city-selector";
 import { BottomNav } from "@/components/bottom-nav";
@@ -113,7 +115,21 @@ function DiscoverInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCity.id]);
 
-  const grouped = useMemo(() => {
+  const [area, setArea] = useState<string | null>(null);
+  useEffect(() => setArea(null), [selectedCity.id]);
+
+  const hoodsQuery = useQuery({
+    queryKey: ["hoods", selectedCity.id],
+    queryFn: () => listNeighborhoods({ data: { cityId: selectedCity.id } }),
+    enabled: selectedCity.id > 0,
+  });
+  // Named local areas where the city has them, otherwise its neighborhood guide.
+  const areas = useMemo(() => {
+    const known = areasForCity(selectedCity.name, selectedCity.state_code);
+    return known.length > 0 ? known : (hoodsQuery.data ?? []);
+  }, [selectedCity.name, selectedCity.state_code, hoodsQuery.data]);
+
+  const allGrouped = useMemo(() => {
     const raw = eventsQuery.data ?? [];
     const nearby = raw.filter((e) => {
       if (!e.latitude || !e.longitude) return false;
@@ -142,6 +158,22 @@ function DiscoverInner() {
     }
     return list;
   }, [eventsQuery.data, selectedCity, filters.window, query]);
+
+  const tagged = useMemo(
+    () => allGrouped.map((event) => ({ event, area: eventArea(areas, event) })),
+    [allGrouped, areas],
+  );
+  const areaOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (area) counts.set(area, 0);
+    for (const { area: a } of tagged) if (a) counts.set(a, (counts.get(a) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  }, [tagged, area]);
+  const grouped = useMemo(
+    () => (area ? tagged.filter((t) => t.area === area).map((t) => t.event) : allGrouped),
+    [tagged, allGrouped, area],
+  );
+  const areaCenter = areas.find((a) => a.name === area);
 
   const upcoming = grouped
     .filter((e) => !e.is_permanent)
@@ -211,6 +243,14 @@ function DiscoverInner() {
           query={view === "map" ? undefined : query}
           onQuery={view === "map" ? undefined : setQuery}
         />
+        <NeighborhoodFilter
+          options={areaOptions}
+          value={area}
+          onChange={(next) => {
+            setArea(next);
+            setSelected(null);
+          }}
+        />
         {(syncing || syncNote) && (
           <p className="px-4 pb-2 text-[11px] text-muted-foreground">
             {syncing ? "Checking zoo, parks, and visitor calendars…" : syncNote}
@@ -235,8 +275,12 @@ function DiscoverInner() {
                   events={grouped}
                   selectedId={selected?.id}
                   onEventTap={setSelected}
-                  cityCenter={[selectedCity.latitude, selectedCity.longitude]}
-                  cityZoom={selectedCity.zoom}
+                  cityCenter={
+                    areaCenter
+                      ? [areaCenter.latitude, areaCenter.longitude]
+                      : [selectedCity.latitude, selectedCity.longitude]
+                  }
+                  cityZoom={areaCenter ? 14 : selectedCity.zoom}
                 />
                 {selected && (
                   <div className="absolute left-4 right-4 top-3 z-30 sm:left-auto sm:right-4 sm:w-80">
