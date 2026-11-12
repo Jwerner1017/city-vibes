@@ -21,20 +21,6 @@ export const SEED_CITIES: SeedCity[] = [
     description:
       "Derby City — parks, the Ohio River, bourbon-country day trips, and a calendar that actually fills a weekend.",
   },
-  { name: "Lexington", state: "Kentucky", state_code: "KY", latitude: 38.0406, longitude: -84.5037, zoom: 12, ranking: 2, description: "Horse country, Keeneland, and a compact downtown." },
-  { name: "Cincinnati", state: "Ohio", state_code: "OH", latitude: 39.1031, longitude: -84.5120, zoom: 12, ranking: 3, description: "River city just up I-71 — find a reason to stay the night." },
-  { name: "Nashville", state: "Tennessee", state_code: "TN", latitude: 36.1627, longitude: -86.7816, zoom: 12, ranking: 4, description: "Music City, parks, and family shows beyond Broadway." },
-  { name: "Indianapolis", state: "Indiana", state_code: "IN", latitude: 39.7684, longitude: -86.1581, zoom: 12, ranking: 5, description: "Monon Trail, museums, and a surprisingly walkable mile." },
-  { name: "Chicago", state: "Illinois", state_code: "IL", latitude: 41.8781, longitude: -87.6298, zoom: 11, ranking: 10, description: "Lakefront festivals, neighborhood fests, and museum campuses." },
-  { name: "New York City", state: "New York", state_code: "NY", latitude: 40.7128, longitude: -74.006, zoom: 11, ranking: 11, description: "Five boroughs of free parks programming and ticketed icons." },
-  { name: "Atlanta", state: "Georgia", state_code: "GA", latitude: 33.749, longitude: -84.388, zoom: 11, ranking: 12, description: "BeltLine weekends, parks, and a stacked festival calendar." },
-  { name: "Austin", state: "Texas", state_code: "TX", latitude: 30.2672, longitude: -97.7431, zoom: 12, ranking: 13, description: "Barton Springs, outdoor shows, and trail days." },
-  { name: "Denver", state: "Colorado", state_code: "CO", latitude: 39.7392, longitude: -104.9903, zoom: 12, ranking: 14, description: "Red Rocks days, parks, and a high-country weekend." },
-  { name: "Portland", state: "Oregon", state_code: "OR", latitude: 45.5051, longitude: -122.675, zoom: 12, ranking: 15, description: "Food carts, forest-in-the-city parks, and river festivals." },
-  { name: "Seattle", state: "Washington", state_code: "WA", latitude: 47.6062, longitude: -122.3321, zoom: 12, ranking: 16, description: "Waterfront, markets, and museum days between the rain." },
-  { name: "New Orleans", state: "Louisiana", state_code: "LA", latitude: 29.9511, longitude: -90.0715, zoom: 13, ranking: 17, description: "Festivals that spill into the street — family hours included." },
-  { name: "Boston", state: "Massachusetts", state_code: "MA", latitude: 42.3601, longitude: -71.0589, zoom: 12, ranking: 18, description: "Harborwalk, commons, and a dense cultural calendar." },
-  { name: "Miami", state: "Florida", state_code: "FL", latitude: 25.7617, longitude: -80.1918, zoom: 12, ranking: 19, description: "Beaches, Art Basel season, and outdoor markets." },
 ];
 
 export type SeedNeighborhood = {
