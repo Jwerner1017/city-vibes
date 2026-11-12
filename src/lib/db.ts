@@ -6,8 +6,19 @@ export type DbSource = "neon" | "pglite";
 
 const rawDatabaseUrl =
   typeof process !== "undefined" ? process.env.DATABASE_URL : undefined;
+// Only a real Postgres connection string counts. Anything else (for example a
+// project's https:// web address) is treated as "not set", so the preview falls
+// back to the built-in database instead of failing on every page load.
+const trimmedDatabaseUrl = rawDatabaseUrl?.trim();
 const databaseUrl =
-  rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
+  trimmedDatabaseUrl && /^postgres(ql)?:\/\//i.test(trimmedDatabaseUrl)
+    ? trimmedDatabaseUrl
+    : undefined;
+if (trimmedDatabaseUrl && !databaseUrl) {
+  console.warn(
+    "[db] DATABASE_URL is not a Postgres connection string (it must start with postgresql://) — ignoring it.",
+  );
+}
 
 export const dbSource: DbSource = databaseUrl ? "neon" : "pglite";
 
@@ -134,7 +145,7 @@ async function createSql(): Promise<Sql> {
   }
   if (onWorkers && dbSource === "pglite") {
     throw new Error(
-      "DATABASE_URL is not set. The in-memory database only runs in local dev; " +
+      "DATABASE_URL is missing or is not a Postgres connection string (postgresql://…). The in-memory database only runs in local dev; " +
         "Base44 hosting needs a Postgres connection string in DATABASE_URL.",
     );
   }

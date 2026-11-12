@@ -26,6 +26,13 @@ if (!databaseUrl) {
   process.exit(0);
 }
 
+if (!/^postgres(ql)?:\/\//i.test(databaseUrl.trim())) {
+  console.error(
+    "[migrate] DATABASE_URL is not a Postgres connection string. It must start with postgresql:// (use the Supabase connection pooler string, not the project's https:// address).",
+  );
+  process.exit(1);
+}
+
 const migrationsDir = join(dirname(fileURLToPath(import.meta.url)), "..", "migrations");
 
 async function main() {
