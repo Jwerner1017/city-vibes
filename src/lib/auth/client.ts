@@ -1,10 +1,8 @@
-import { genericOAuthClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { runPreSignInSignOut, runSignOut } from "../../../scripts/sign-out-plan.mjs";
 import { GROK_PROVIDERS } from "./providers";
 
 export const authClient = createAuthClient({
-  plugins: [genericOAuthClient()],
   fetchOptions: {
     onRequest(ctx) {
       const token = getBearerToken();
@@ -84,10 +82,12 @@ export async function signIn(
     return;
   }
 
-  const { data, error } = await authClient.signIn.oauth2({
-    providerId,
+  // Broker providers are regular social providers now, so they use the standard sign-in call.
+  const { data, error } = await authClient.signIn.social({
+    provider: providerId,
     callbackURL,
     errorCallbackURL,
+    disableRedirect: true,
   });
   if (error) throw new Error(error.message ?? "Sign-in failed");
   if (data?.url) window.location.href = data.url;

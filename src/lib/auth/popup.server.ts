@@ -37,11 +37,12 @@ export async function handleAuthPopupRequest(request: Request): Promise<Response
 
   const back = `${url.origin}/auth/popup?done=1`;
   try {
-    const apiRes = await auth.api.signInWithOAuth2({
+    const apiRes = await auth.api.signInSocial({
       body: {
-        providerId,
+        provider: providerId,
         callbackURL: back,
         errorCallbackURL: `${back}&error=1`,
+        disableRedirect: true,
       },
       headers: request.headers,
       asResponse: true,
