@@ -10,6 +10,7 @@ import EventReviews from "@/components/EventReviews";
 import PhotoGallery from "@/components/PhotoGallery";
 import UserBadges, { computeBadges } from "@/components/UserBadges";
 import moment from "moment";
+import { safeHttpUrl } from "@/lib/safe-url";
 
 export default function EventDetail() {
   const { id } = useParams();
@@ -271,9 +272,9 @@ export default function EventDetail() {
             </div>
           )}
 
-          {event.website_url && (
+          {safeHttpUrl(event.website_url) && (
             <a
-              href={event.website_url}
+              href={safeHttpUrl(event.website_url)}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 flex items-center gap-2 text-sm text-accent font-semibold"

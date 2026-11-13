@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { CATEGORY_CONFIG, HOLIDAY_CONFIG, LOUISVILLE_CENTER } from "@/lib/constants";
+import { safeHttpUrl } from "@/lib/safe-url";
 
 export default function CreateEvent() {
   const navigate = useNavigate();
@@ -85,9 +86,16 @@ export default function CreateEvent() {
       toast({ title: "Please add a title and date", variant: "destructive" });
       return;
     }
+    const website = form.website_url.trim();
+    const safeWebsite = safeHttpUrl(website);
+    if (website && !safeWebsite) {
+      toast({ title: "Website must start with http:// or https://", variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
     await base44.entities.Event.create({
       ...form,
+      website_url: safeWebsite || "",
       photos,
       status: "pending",
       going_count: 0,

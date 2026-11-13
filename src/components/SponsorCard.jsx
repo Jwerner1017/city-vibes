@@ -1,6 +1,7 @@
 import React from "react";
 import { ExternalLink, Tag, Phone, MapPin, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { safeHttpUrl } from "@/lib/safe-url";
 
 const TIER_CONFIG = {
   platinum: { label: "Platinum Sponsor", color: "#e5e4e2", bg: "from-slate-600 to-slate-800", badge: "💎" },
@@ -88,8 +89,8 @@ export default function SponsorCard({ sponsor, onClose }) {
         </div>
 
         {/* CTA */}
-        {sponsor.website_url && (
-          <a href={sponsor.website_url} target="_blank" rel="noopener noreferrer">
+        {safeHttpUrl(sponsor.website_url) && (
+          <a href={safeHttpUrl(sponsor.website_url)} target="_blank" rel="noopener noreferrer">
             <Button className="w-full bg-primary hover:bg-primary/90 text-white text-sm h-9 gap-2">
               <ExternalLink className="w-3.5 h-3.5" />
               Visit Website
