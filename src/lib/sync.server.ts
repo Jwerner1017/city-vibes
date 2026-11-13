@@ -23,6 +23,7 @@ import {
   SEED_CITIES,
   SEED_NEIGHBORHOODS,
 } from "@/lib/cities-data";
+import { CITY_ATTRACTIONS } from "@/lib/city-attractions";
 import type { City, SyncResult } from "@/lib/types";
 
 type Sql = Awaited<ReturnType<typeof getSql>>;
@@ -42,16 +43,26 @@ type CityRow = {
 };
 
 const STALE_MS = 4 * 60 * 60 * 1000;
-const OTHER_BATCH_SIZE = 2;
+const OTHER_BATCH_SIZE = 4;
 const MIN_GAP_MS = 8 * 60 * 1000;
 
 let inFlight: Promise<SyncResult> | null = null;
 
+let seedChecked = false;
+
+/** Event keys are unique across the whole table, so every city but Louisville gets its own prefix. */
+function scopedKey(city: CityRow, key: string) {
+  if (city.name === "Louisville" && city.state_code === "KY") return key;
+  return `${city.name.toLowerCase().replace(/\s+/g, "-")}-${city.state_code.toLowerCase()}:${key}`;
+}
+
 export async function ensureSeeded() {
+  if (seedChecked) return;
   const sql = await getSql();
   const existing = await sql<{ c: number }>`select count(*)::int as c from cities`;
-  if ((existing[0]?.c ?? 0) > 0) return;
+  const firstRun = (existing[0]?.c ?? 0) === 0;
 
+  // Runs once per server start so cities added to the list later reach existing databases too.
   for (const c of SEED_CITIES) {
     await sql`
       insert into cities (name, state, state_code, latitude, longitude, zoom, ranking, is_active, description)
@@ -59,6 +70,8 @@ export async function ensureSeeded() {
       on conflict (name, state_code) do nothing
     `;
   }
+  seedChecked = true;
+  if (!firstRun) return;
 
   const cities = await sql<CityRow>`select * from cities`;
   const byKey = new Map(cities.map((c) => [`${c.name}|${c.state_code}`, c]));
@@ -95,8 +108,12 @@ export async function ensureSeeded() {
 async function upsertAttractions(sql: Sql, city: CityRow) {
   const now = new Date();
   const far = new Date(now.getTime() + 400 * 86_400_000);
-  for (const a of LOUISVILLE_ATTRACTIONS) {
-    const key = eventKey(a.title, "permanent");
+  const list =
+    city.name === "Louisville" && city.state_code === "KY"
+      ? LOUISVILLE_ATTRACTIONS
+      : (CITY_ATTRACTIONS[`${city.name}|${city.state_code}`] ?? []);
+  for (const a of list) {
+    const key = scopedKey(city, eventKey(a.title, "permanent"));
     const incoming: IncomingEvent = {
       title: a.title,
       description: a.description,
@@ -204,11 +221,14 @@ export async function runScheduledSync(opts?: {
 
       // Weekly AI verification of the permanent venue list (closures, hours,
       // prices, and newly opened venues). Cron only, so page-load syncs stay fast.
-      if (opts?.fromCron && louisville) {
-        try {
-          await researchVenuesWithGrok(sql, louisville.id);
-        } catch (err) {
-          console.warn("[venues] Grok venue research failed", err);
+      if (opts?.fromCron) {
+        for (const city of [louisville, ...othersToRun]) {
+          if (!city) continue;
+          try {
+            await researchVenuesWithGrok(sql, city.id);
+          } catch (err) {
+            console.warn("[venues] Grok venue research failed", err);
+          }
         }
       }
 
@@ -303,12 +323,14 @@ async function syncCity(sql: Sql, city: CityRow): Promise<SyncResult["cities"][n
       } catch (err) {
         console.warn(`[${cityKey}] LFPL failed`, err);
       }
-      await upsertAttractions(sql, city);
-      try {
-        await refreshVenues(sql, city.id);
-      } catch (err) {
-        console.warn(`[${cityKey}] venue refresh failed`, err);
-      }
+    }
+
+    // Every city: keep its zoo, convention center, and other permanent places on the map and current.
+    await upsertAttractions(sql, city);
+    try {
+      await refreshVenues(sql, city.id);
+    } catch (err) {
+      console.warn(`[${cityKey}] venue refresh failed`, err);
     }
 
     let synced = 0;
@@ -319,7 +341,7 @@ async function syncCity(sql: Sql, city: CityRow): Promise<SyncResult["cities"][n
 
     for (const raw of merged) {
       if (!raw.title || !raw.date_start) continue;
-      const key = eventKey(raw.title, raw.key_date ?? toIso(raw.date_start));
+      const key = scopedKey(city, eventKey(raw.title, raw.key_date ?? toIso(raw.date_start)));
       if (seen.has(key)) continue;
       seen.add(key);
       const eventDate = new Date(toIso(raw.date_start));

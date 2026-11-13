@@ -22,7 +22,7 @@ function CitiesPage() {
       <header className="border-b border-border bg-surface px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <h1 className="font-display text-2xl font-semibold tracking-tight">Choose a city</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          City Vibes covers Louisville, Kentucky.
+          Pick a city to see its events, zoo, convention center, and family spots.
         </p>
       </header>
       <div className="px-4 pt-4">

@@ -61,6 +61,55 @@ export const CITY_SOURCES: Record<string, CitySource> = {
       },
     ],
   },
+  "Lexington,KY": {
+    lat: 38.0406,
+    lng: -84.5037,
+    rss_urls: ["https://www.visitlex.com/event/rss/"],
+    tribe: [
+      {
+        name: "Kentucky Horse Park",
+        url: "https://kyhorsepark.com/wp-json/tribe/events/v1/events",
+        lat: 38.1486,
+        lng: -84.5197,
+        address: "4089 Iron Works Pkwy, Lexington, KY 40511",
+      },
+    ],
+  },
+  "Knoxville,TN": {
+    lat: 35.9606,
+    lng: -83.9207,
+    rss_urls: ["https://www.visitknoxville.com/event/rss/"],
+  },
+  "Houston,TX": {
+    lat: 29.7604,
+    lng: -95.3698,
+    rss_urls: ["https://www.visithoustontexas.com/event/rss/"],
+  },
+  "Daytona Beach,FL": {
+    lat: 29.2108,
+    lng: -81.0228,
+    rss_urls: ["https://www.daytonabeach.com/event/rss/"],
+  },
+  "Indianapolis,IN": {
+    lat: 39.7684,
+    lng: -86.1581,
+    tribe: [
+      {
+        name: "Indianapolis Zoo",
+        url: "https://www.indianapoliszoo.com/wp-json/tribe/events/v1/events",
+        lat: 39.7672,
+        lng: -86.1808,
+        address: "1200 W Washington St, Indianapolis, IN 46222",
+      },
+      {
+        name: "Indiana Convention Center",
+        url: "https://www.icclos.com/wp-json/tribe/events/v1/events",
+        lat: 39.764,
+        lng: -86.164,
+        address: "100 S Capitol Ave, Indianapolis, IN 46225",
+      },
+    ],
+  },
   "New York City,NY": {
     lat: 40.7128,
     lng: -74.006,
@@ -451,7 +500,22 @@ export function parseRSS(
       return m ? m[1].trim() : "";
     };
     const title = decodeHtml(getField("title"));
-    const description = stripHtml(getField("description"));
+    const rawDescription = getField("description").replace(/<!\[CDATA\[|\]\]>/g, "");
+    // Visitor-bureau feeds stamp every item with today's date and put the real
+    // run ("11/12/2026 to 11/15/2026") at the start of the description.
+    const range = rawDescription
+      .replace(/<[^>]*>/g, " ")
+      .match(/(\d{2})\/(\d{2})\/(\d{4})\s+to\s+(\d{2})\/(\d{2})\/(\d{4})/);
+    const description = stripHtml(rawDescription).replace(
+      /^\d{2}\/\d{2}\/\d{4}\s+to\s+\d{2}\/\d{2}\/\d{4}\s*-?\s*/,
+      "",
+    );
+    const categories = [...item.matchAll(/<category[^>]*>([\s\S]*?)<\/category>/g)].map((m) =>
+      decodeHtml(m[1].replace(/<!\[CDATA\[|\]\]>/g, "").trim()),
+    );
+    const image = rawDescription
+      .match(/<img[^>]+src=['"](https:\/\/[^'"]+)['"]/i)?.[1]
+      ?.replace("h_100,q_75,w_150", "h_400,q_75,w_600");
     const link = getField("link");
     const rawDate =
       getField("startdate") ||
@@ -460,25 +524,40 @@ export function parseRSS(
       getField("pubDate");
     if (!title || title === "CRM Import") continue;
     if (!isFamilyFriendly(title, description)) continue;
+    if (
+      categories.some((c) => /nightlife/i.test(c)) &&
+      !categories.some((c) => /family|kid/i.test(c))
+    )
+      continue;
     let dateStart: Date;
-    try {
+    let dateEnd: Date;
+    let keyDate: string | undefined;
+    if (range) {
+      keyDate = `${range[3]}-${range[1]}-${range[2]}`;
+      dateStart = new Date(`${keyDate}T15:00:00Z`);
+      dateEnd = new Date(`${range[6]}-${range[4]}-${range[5]}T23:59:00Z`);
+    } else {
       dateStart = rawDate ? new Date(rawDate) : new Date();
-    } catch {
-      dateStart = new Date();
+      dateEnd = new Date(dateStart.getTime() + 3 * 60 * 60 * 1000);
     }
-    if (Number.isNaN(dateStart.getTime()) || dateStart < startOfToday()) continue;
+    if (Number.isNaN(dateStart.getTime()) || Number.isNaN(dateEnd.getTime())) continue;
+    if ((range ? dateEnd : dateStart) < startOfToday()) continue;
     events.push({
       title,
       description: description || `${title} in ${cityName}.`,
       date_start: dateStart.toISOString(),
-      date_end: new Date(dateStart.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      date_end: dateEnd.toISOString(),
       location_name: cityName,
       address: `${cityName}, ${stateCode}`,
       latitude: cityLat,
       longitude: cityLng,
       website_url: link || null,
-      is_free: /free|no charge/i.test(`${title} ${description}`),
+      photos: image ? [image] : [],
+      is_free:
+        /free|no charge/i.test(`${title} ${description}`) ||
+        categories.some((c) => /^free/i.test(c)),
       source: "rss",
+      key_date: keyDate,
     });
   }
   return events;

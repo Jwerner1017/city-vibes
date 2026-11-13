@@ -310,7 +310,7 @@ function DiscoverInner() {
                             {e.title}
                           </p>
                           <p className="mt-1 truncate text-[11px] text-muted-foreground">
-                            {e.location_name || "Louisville"} · {e.is_free ? "Free" : "Tickets"}
+                            {e.location_name || selectedCity.name} · {e.is_free ? "Free" : "Tickets"}
                           </p>
                         </button>
                       ))}

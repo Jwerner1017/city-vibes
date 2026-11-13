@@ -21,6 +21,18 @@ export const SEED_CITIES: SeedCity[] = [
     description:
       "Derby City — parks, the Ohio River, bourbon-country day trips, and a calendar that actually fills a weekend.",
   },
+  { name: "Lexington", state: "Kentucky", state_code: "KY", latitude: 38.0406, longitude: -84.5037, zoom: 12, ranking: 2, description: "Horse capital of the world — farms, Keeneland, and an easy downtown." },
+  { name: "Knoxville", state: "Tennessee", state_code: "TN", latitude: 35.9606, longitude: -83.9207, zoom: 12, ranking: 3, description: "Gateway to the Smokies, with a walkable downtown and the Sunsphere." },
+  { name: "Nashville", state: "Tennessee", state_code: "TN", latitude: 36.1627, longitude: -86.7816, zoom: 11, ranking: 4, description: "Music City — live shows, big parks, and plenty for kids beyond Broadway." },
+  { name: "Indianapolis", state: "Indiana", state_code: "IN", latitude: 39.7684, longitude: -86.1581, zoom: 11, ranking: 5, description: "Home of the world's largest children's museum, the zoo, and the canal walk." },
+  { name: "Dallas", state: "Texas", state_code: "TX", latitude: 32.7767, longitude: -96.797, zoom: 11, ranking: 6, description: "Big-city museums, a park over the freeway, and the State Fair of Texas." },
+  { name: "Houston", state: "Texas", state_code: "TX", latitude: 29.7604, longitude: -95.3698, zoom: 11, ranking: 7, description: "Space City — NASA, the Museum District, and Hermann Park." },
+  { name: "Jacksonville", state: "Florida", state_code: "FL", latitude: 30.3322, longitude: -81.6557, zoom: 11, ranking: 8, description: "River city with beaches, a top zoo, and the largest urban park system in the country." },
+  { name: "Daytona Beach", state: "Florida", state_code: "FL", latitude: 29.2108, longitude: -81.0228, zoom: 12, ranking: 9, description: "Drive-on beaches, the Speedway, and a boardwalk full of arcades." },
+  { name: "Miami", state: "Florida", state_code: "FL", latitude: 25.7617, longitude: -80.1918, zoom: 11, ranking: 10, description: "Beaches, bay-front museums, and festivals nearly every weekend." },
+  { name: "Las Vegas", state: "Nevada", state_code: "NV", latitude: 36.1699, longitude: -115.1398, zoom: 11, ranking: 11, description: "More family-friendly than its reputation — free shows, aquariums, and desert parks." },
+  { name: "San Diego", state: "California", state_code: "CA", latitude: 32.7157, longitude: -117.1611, zoom: 11, ranking: 12, description: "The zoo, Balboa Park, and beach weather most of the year." },
+  { name: "San Francisco", state: "California", state_code: "CA", latitude: 37.7749, longitude: -122.4194, zoom: 12, ranking: 13, description: "Golden Gate Park, the waterfront, and museums built for curious kids." },
 ];
 
 export type SeedNeighborhood = {
