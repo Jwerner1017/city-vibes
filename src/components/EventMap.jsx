@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CATEGORY_CONFIG } from "@/lib/constants";
 import moment from "moment";
+import { escapeHtml } from "@/lib/escapeHtml";
 
 const TIER_COLORS = { platinum: "#e5e4e2", gold: "#FFD700", silver: "#C0C0C0", bronze: "#CD7F32" };
 
@@ -100,9 +101,9 @@ export default function EventMap({ events, sponsors = [], onEventTap, onSponsorT
       const addressLine = event.address || event.location_name || "";
       marker.bindPopup(
         `<div style="min-width:160px">
-          <div style="font-weight:700;font-size:13px;margin-bottom:2px;">${event.title || ""}</div>
-          ${timeStr ? `<div style="font-size:11px;color:#555;">${timeStr}</div>` : ""}
-          ${addressLine ? `<div style="font-size:11px;color:#555;">${addressLine}</div>` : ""}
+          <div style="font-weight:700;font-size:13px;margin-bottom:2px;">${escapeHtml(event.title)}</div>
+          ${timeStr ? `<div style="font-size:11px;color:#555;">${escapeHtml(timeStr)}</div>` : ""}
+          ${addressLine ? `<div style="font-size:11px;color:#555;">${escapeHtml(addressLine)}</div>` : ""}
           <div style="font-size:10px;color:#999;margin-top:2px;">${event.latitude.toFixed(5)}, ${event.longitude.toFixed(5)}</div>
         </div>`,
         { closeButton: false }

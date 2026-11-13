@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { requireAdmin } from '../../shared/requireAdmin.ts';
 
 const ZOO_LAT = 38.2057;
 const ZOO_LNG = -85.7624;
@@ -67,16 +68,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Allow both admin calls and scheduled (service role) calls
-    let isAuthorized = false;
-    try {
-      const user = await base44.auth.me();
-      if (user && user.role === 'admin') isAuthorized = true;
-    } catch (_) {
-      // scheduled automation uses service role — allow it
-      isAuthorized = true;
-    }
-    if (!isAuthorized) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = await requireAdmin(base44);
+    if (denied) return denied;
 
     // Fetch from Louisville Zoo WordPress API
     const res = await fetch(API_URL, {

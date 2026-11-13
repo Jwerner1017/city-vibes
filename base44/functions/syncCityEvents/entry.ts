@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { requireAdmin } from '../../shared/requireAdmin.ts';
 
 const VALID_CATEGORIES = ["festival", "outdoor", "sports", "arts", "music", "food", "holiday", "community", "education", "attraction", "trick_or_treat", "fireworks", "santa", "easter", "parade", "other"];
 const VALID_HOLIDAYS = ["none", "july_4th", "halloween", "christmas", "easter", "st_patricks", "thanksgiving", "new_years", "valentines", "memorial_day", "labor_day"];
@@ -8,14 +9,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    let isAuthorized = false;
-    try {
-      const user = await base44.auth.me();
-      if (user && user.role === 'admin') isAuthorized = true;
-    } catch (_) {
-      isAuthorized = true; // scheduled automation
-    }
-    if (!isAuthorized) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = await requireAdmin(base44);
+    if (denied) return denied;
 
     // Get payload: { city_name, city_state, city_lat, city_lng, city_id }
     const body = await req.json().catch(() => ({}));

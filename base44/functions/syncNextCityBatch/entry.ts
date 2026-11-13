@@ -1,11 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { requireAdmin } from '../../shared/requireAdmin.ts';
 
 // Louisville always runs first (home city / densest sources).
 // Then a rolling batch of other cities so the rest of the map stays fresh.
 const OTHER_BATCH_SIZE = 2;
 
 async function syncOneCity(base44, city) {
-  const result = await base44.asServiceRole.functions.invoke('syncCityFromSource', {
+  // Called as the verified admin so the per-city sync can check the caller too.
+  const result = await base44.functions.invoke('syncCityFromSource', {
     city_name: city.name,
     city_state: city.state_code,
     city_lat: city.latitude,
@@ -23,12 +25,8 @@ async function syncOneCity(base44, city) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    let isAuthorized = false;
-    try {
-      const user = await base44.auth.me();
-      if (user && user.role === 'admin') isAuthorized = true;
-    } catch (_) { isAuthorized = true; }
-    if (!isAuthorized) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = await requireAdmin(base44);
+    if (denied) return denied;
 
     const body = await req.json().catch(() => ({}));
 

@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useToast } from "@/components/ui/use-toast";
 import { LOUISVILLE_CENTER } from "@/lib/constants";
 import { useCity } from "@/lib/CityContext";
+import { escapeHtml } from "@/lib/escapeHtml";
 
 const distanceMiles = (lat1, lng1, lat2, lng2) => {
   const R = 3958.8;
@@ -88,10 +89,10 @@ export default function HalloweenHub() {
       const marker = L.marker([stop.latitude, stop.longitude], { icon }).addTo(map);
       marker.bindPopup(`
         <div style="font-family:Quicksand,sans-serif;min-width:150px;">
-          <strong>${stop.address}</strong><br/>
-          <span>🍬 ${stop.candy_type || "Candy"}</span><br/>
-          <span>${DECORATION_LEVELS[stop.decorations] || ""}</span>
-          ${stop.notes ? `<br/><em>${stop.notes}</em>` : ""}
+          <strong>${escapeHtml(stop.address)}</strong><br/>
+          <span>🍬 ${escapeHtml(stop.candy_type || "Candy")}</span><br/>
+          <span>${escapeHtml(DECORATION_LEVELS[stop.decorations] || "")}</span>
+          ${stop.notes ? `<br/><em>${escapeHtml(stop.notes)}</em>` : ""}
         </div>
       `);
     });

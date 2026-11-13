@@ -69,7 +69,7 @@ function EventRow({ event, goingCount, savedCount }) {
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
-  const [interactions, setInteractions] = useState([]);
+  const [counts, setCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
@@ -82,12 +82,9 @@ export default function OrganizerDashboard() {
       setEvents(myEvents);
 
       if (myEvents.length > 0) {
-        // Load all interactions for these events in one batch using $in
-        const eventIds = myEvents.map(e => e.id);
-        const allInteractions = await base44.asServiceRole?.entities?.UserInteraction
-          ? base44.asServiceRole.entities.UserInteraction.filter({ event_id: { $in: eventIds } })
-          : Promise.resolve([]);
-        setInteractions(await allInteractions);
+        // Totals are computed on the server, scoped to this organizer's own events
+        const res = await base44.functions.invoke("getOrganizerEngagement", {});
+        setCounts(res.data?.counts || {});
       }
     } catch (err) {
       console.error(err);
@@ -97,11 +94,10 @@ export default function OrganizerDashboard() {
 
   useEffect(() => { loadDashboard(); }, [loadDashboard]);
 
-  const getCount = (eventId, type) =>
-    interactions.filter(i => i.event_id === eventId && i.type === type).length;
+  const getCount = (eventId, type) => counts[eventId]?.[type] || 0;
 
-  const totalGoing = interactions.filter(i => i.type === "going").length;
-  const totalSaved = interactions.filter(i => i.type === "saved").length;
+  const totalGoing = Object.values(counts).reduce((sum, c) => sum + c.going, 0);
+  const totalSaved = Object.values(counts).reduce((sum, c) => sum + c.saved, 0);
   const approvedCount = events.filter(e => e.status === "approved").length;
 
   // Sort by engagement
