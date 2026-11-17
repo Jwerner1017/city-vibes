@@ -81,7 +81,7 @@ async function fetchHtml(startUrl) {
       await res.body?.cancel();
       throw new Error(res.ok ? `not a web page (${type})` : `HTTP ${res.status}`);
     }
-    return await readCapped(res);
+    return { html: await readCapped(res), url };
   }
   throw new Error(url ? "too many redirects" : "link is not a public web address");
 }
@@ -165,9 +165,38 @@ function imageOf(v) {
 }
 
 /** Fetches a page once and keeps only what is needed to match events against it. Throws when unreachable. */
-export async function fetchPage(url) {
-  const html = await fetchHtml(url);
-  return { events: eventNodes(html), ogTitle: meta(html, "og:title"), ogImage: meta(html, "og:image") };
+export async function fetchPage(startUrl) {
+  const { html, url } = await fetchHtml(startUrl);
+  return {
+    events: eventNodes(html),
+    ogTitle: meta(html, "og:title"),
+    ogImage: meta(html, "og:image"),
+    links: linksOf(html, url),
+  };
+}
+
+// Links on the page that stay on the same site, with their visible text.
+function linksOf(html, base) {
+  const out = [];
+  const host = base.hostname.replace(/^www\./, "");
+  for (const m of html.matchAll(/<a\b[^>]*?href=["']([^"'#]+)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
+    if (out.length >= 1500) break;
+    const text = clean(m[2]);
+    if (text.length < 4 || text.length > 200) continue;
+    let u = null;
+    try {
+      u = publicHttpUrl(new URL(decode(m[1]), base));
+    } catch {
+      continue;
+    }
+    if (u && u.hostname.replace(/^www\./, "") === host) out.push({ text, url: u.toString() });
+  }
+  return out;
+}
+
+/** On a homepage or calendar, the link whose text names this event. Null when there is none. */
+export function findEventLink(page, title, currentUrl) {
+  return page.links.find((l) => l.url !== currentUrl && sameTitle(l.text, title))?.url || null;
 }
 
 /**

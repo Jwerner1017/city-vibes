@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import { requireAdmin } from '../../shared/requireAdmin.ts';
-import { fetchPage, matchEvent } from './scrape.ts';
+import { fetchPage, findEventLink, matchEvent } from './scrape.ts';
 
 const RECHECK_DAYS = 7;
 const MAX_DEGREES = 1.5; // about 100 miles: a venue further than this from the stored pin is treated as a wrong match
@@ -52,7 +52,7 @@ export default async function(req) {
       }
       return map.get(key);
     };
-    const counts = { checked: items.length, corrected: 0, confirmed_from_page: 0, page_not_about_event: 0, page_unreachable: 0, pins_moved: 0 };
+    const counts = { checked: items.length, corrected: 0, confirmed_from_page: 0, found_by_crawling: 0, page_not_about_event: 0, page_unreachable: 0, pins_moved: 0 };
 
     const checkOne = async (ev) => {
       const patch = { id: ev.id, details_checked_at: nowIso };
@@ -62,7 +62,18 @@ export default async function(req) {
         patch.details_checked_at = retryTomorrow; // blocked or down today: try again in a day, not a week
         return patch;
       }
-      const found = matchEvent(page, ev.title, ev.date_start);
+      let found = matchEvent(page, ev.title, ev.date_start);
+      if (!found?.structured) {
+        // The link is a homepage or calendar: crawl one step to the event's own page.
+        const link = findEventLink(page, ev.title, ev.website_url);
+        const deeper = link ? await once(pages, link, () => fetchPage(link)) : null;
+        const better = deeper ? matchEvent(deeper, ev.title, ev.date_start) : null;
+        if (better?.structured) {
+          found = better;
+          patch.website_url = link;
+          counts.found_by_crawling += 1;
+        }
+      }
       if (!found) {
         counts.page_not_about_event += 1;
         return patch;
