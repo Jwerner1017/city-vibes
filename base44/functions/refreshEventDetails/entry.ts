@@ -111,7 +111,9 @@ export default async function(req) {
     };
 
     const patches = [];
+    const started = Date.now();
     for (let i = 0; i < items.length; i += 6) {
+      if (Date.now() - started > 90_000) break; // slow sites: the rest stay queued for the next run
       const chunk = items.slice(i, i + 6);
       const settled = await Promise.allSettled(chunk.map(checkOne));
       settled.forEach((r, j) => {
@@ -119,6 +121,7 @@ export default async function(req) {
         patches.push(r.status === 'fulfilled' ? r.value : { id: chunk[j].id, details_checked_at: nowIso });
       });
     }
+    counts.checked = patches.length;
     counts.corrected = patches.filter((p) => Object.keys(p).some((k) => !['id', 'details_checked_at', 'details_verified'].includes(k))).length;
 
     if (body.dry_run) return Response.json({ dry_run: true, ...counts, changes: patches.slice(0, 15) });
