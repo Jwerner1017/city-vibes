@@ -1,0 +1,47 @@
+{
+  "name": "Event Details Check",
+  "description": "Every 30 minutes, reads the web pages of the next 60 upcoming events and corrects venue, address, map pin, times, photo and price from what each page publishes. Each event is re-checked weekly.",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "event_details_check",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "check_event_pages": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshEventDetails",
+            "args": {
+              "limit": 60
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Read event pages",
+            "description": "Next 60 events"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 30,
+      "interval_unit": "minutes",
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
+}

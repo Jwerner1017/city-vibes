@@ -493,8 +493,10 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Also match by link: a corrected address may name a neighboring town instead of the city.
+    const mergedUrls = [...new Set(merged.map((e) => e.website_url).filter(Boolean))].slice(0, 300);
     const existing = await base44.asServiceRole.entities.Event.filter(
-      { address: { $regex: city.name, $options: "i" } },
+      { $or: [{ address: { $regex: city.name, $options: "i" } }, { website_url: { $in: mergedUrls } }] },
       "-date_start",
       400,
     );
@@ -554,10 +556,14 @@ Deno.serve(async (req) => {
         if (record.featured && !prev.featured) patch.featured = true;
         if (record.location_name && record.location_name !== city.name) patch.location_name = record.location_name;
         if (record.source && !prev.source) patch.source = record.source;
-        patch.date_start = record.date_start;
-        patch.date_end = record.date_end;
-        patch.latitude = record.latitude;
-        patch.longitude = record.longitude;
+        // Times and map position confirmed from the event's own page are kept;
+        // refreshEventDetails re-reads that page weekly.
+        if (!prev.details_verified) {
+          patch.date_start = record.date_start;
+          patch.date_end = record.date_end;
+          patch.latitude = record.latitude;
+          patch.longitude = record.longitude;
+        }
         try {
           await base44.asServiceRole.entities.Event.update(prev.id, patch);
           updated += 1;

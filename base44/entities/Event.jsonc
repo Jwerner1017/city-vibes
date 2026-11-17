@@ -117,6 +117,16 @@
     "source": {
       "type": "string",
       "description": "Ingestion source: rss, socrata, tribe, llm, community, anchor"
+    },
+    "details_checked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time the event's own web page was read to check its details"
+    },
+    "details_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when the event's own web page published matching details that were applied"
     }
   },
   "required": [
