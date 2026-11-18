@@ -6,28 +6,28 @@ const ALLOWED_AMOUNTS: Record<string, number[]> = {
   one_time: [5, 10, 20],
   monthly: [2.99, 4.99, 9.99],
 };
-const ALLOWED_ORIGINS = ['https://city-vibes.us', 'https://www.city-vibes.us'];
-const DEFAULT_ORIGIN = 'https://city-vibes.us';
-
-// Only allow redirects back to city-vibes.us; anything else falls back to the default.
-function safeUrl(candidate: unknown, fallbackPath: string): string {
-  if (typeof candidate === 'string') {
-    try {
-      const u = new URL(candidate);
-      if (ALLOWED_ORIGINS.includes(u.origin)) return u.toString();
-    } catch (_) { /* fall through */ }
-  }
-  return `${DEFAULT_ORIGIN}${fallbackPath}`;
-}
 
 Deno.serve(async (req) => {
   try {
+    // Return links come from the platform's own header, never from the caller.
+    const appUrl = req.headers.get('X-Base44-App-Url');
+    if (!appUrl) {
+      console.error('[Checkout Error] X-Base44-App-Url header missing');
+      return Response.json({ error: 'Checkout could not be started. Please try again.' }, { status: 500 });
+    }
+    const origin = new URL(appUrl).origin;
+
+    // Guests can donate; a signed-in donor is recorded so the payment can unlock their badge.
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch((e) => (e.status === 401 ? null : Promise.reject(e)));
+
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
 
     const body = await req.json();
-    const { amount, type, tier_name, success_url, cancel_url } = body;
+    const { amount, type } = body;
+    const tier_name = String(body.tier_name || '').slice(0, 40);
 
     if (!amount || !type) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
@@ -46,9 +46,10 @@ Deno.serve(async (req) => {
         base44_app_id: Deno.env.get('BASE44_APP_ID') || '',
         type,
         tier_name: tier_name || 'One-time',
+        user_id: user?.id || '',
       },
-      success_url: safeUrl(success_url, '/donate?success=true'),
-      cancel_url: safeUrl(cancel_url, '/donate'),
+      success_url: `${origin}/donate?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/donate`,
     };
 
     if (type === 'monthly') {
@@ -63,6 +64,7 @@ Deno.serve(async (req) => {
       });
 
       sessionConfig.mode = 'subscription';
+      sessionConfig.subscription_data = { metadata: { base44_app_id: Deno.env.get('BASE44_APP_ID') || '' } };
       sessionConfig.line_items = [{ price: price.id, quantity: 1 }];
     } else {
       // One-time payment
@@ -81,6 +83,18 @@ Deno.serve(async (req) => {
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
+
+    // Recorded by the server as pending. Only the signed Stripe webhook marks it completed.
+    if (user) {
+      await base44.asServiceRole.entities.Donation.create({
+        amount: Number(amount),
+        type,
+        tier_name: tier_name || 'One-time',
+        status: 'pending',
+        user_id: user.id,
+        stripe_session_id: session.id,
+      });
+    }
 
     console.log(`[Checkout] Created session ${session.id} for ${type} $${amount}`);
 

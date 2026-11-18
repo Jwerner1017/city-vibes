@@ -32,7 +32,7 @@ export default function Profile() {
         const me = await base44.auth.me();
         setUser(me);
         const [d, evs] = await Promise.all([
-          base44.entities.Donation.filter({ status: "completed" }),
+          base44.entities.Donation.filter({ status: "completed", user_id: me.id }),
           base44.entities.Event.filter({ created_by_id: me.id }),
         ]);
         setDonations(d);

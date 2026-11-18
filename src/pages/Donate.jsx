@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Heart, Star, Check, Zap, Shield, Globe, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import DonationResult from "@/components/DonationResult";
 
 const ONE_TIME = [
   {
@@ -81,77 +82,44 @@ export default function Donate() {
   const handleDonate = async () => {
     if (!selected) return;
 
-    if (isInIframe()) {
-      toast({
-        title: "Open the published app",
-        description: "Checkout only works from the published app — not the preview.",
-        variant: "destructive",
-      });
+    // In the preview the app is framed, so checkout opens in a new tab.
+    const framed = isInIframe();
+    const checkoutTab = framed ? window.open("", "_blank") : null;
+    if (framed && !checkoutTab) {
+      toast({ title: "Allow popups to continue to checkout.", variant: "destructive" });
       return;
     }
+    if (checkoutTab) checkoutTab.opener = null;
 
     setSubmitting(true);
     try {
-      const currentUrl = window.location.origin;
       const response = await base44.functions.invoke("createDonationCheckout", {
         amount: selected.amount,
         type: tab,
         tier_name: selected.name || "One-time",
-        success_url: `${currentUrl}/donate?success=true`,
-        cancel_url: `${currentUrl}/donate`,
       });
-
-      if (response.data?.url) {
-        // Save a record locally before redirecting
-        await base44.entities.Donation.create({
-          amount: selected.amount,
-          type: tab,
-          tier_name: selected.name || "One-time",
-          status: "pending",
-        });
-        window.location.href = response.data.url;
+      const url = response.data?.url;
+      if (!url) throw new Error(response.data?.error || "Could not create checkout session");
+      if (checkoutTab) {
+        checkoutTab.location.replace(url);
+        setSubmitting(false);
       } else {
-        throw new Error(response.data?.error || "Could not create checkout session");
+        window.location.assign(url);
       }
     } catch (err) {
+      checkoutTab?.close();
       toast({
         title: "Something went wrong",
-        description: err.message,
+        description: err.response?.data?.error || err.message,
         variant: "destructive",
       });
       setSubmitting(false);
     }
   };
 
-  // Handle success redirect from Stripe
-  const urlParams = new URLSearchParams(window.location.search);
-  const isSuccess = urlParams.get("success") === "true";
-
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center max-w-sm">
-          <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg shadow-green-500/30">
-            <Check className="w-12 h-12 text-white" />
-          </div>
-          <h1 className="font-heading font-black text-3xl mb-2">You're a Legend! 🎉</h1>
-          <p className="text-muted-foreground mb-2 leading-relaxed">
-            Your generosity directly fuels the features, updates, and infrastructure that keep City Vibes alive and thriving.
-          </p>
-          <p className="text-sm text-muted-foreground mb-7">
-            We'll put every dollar to work — promise.
-          </p>
-          <div className="flex items-center justify-center gap-2 mb-7 bg-yellow-50 border border-yellow-200 rounded-2xl py-3 px-4">
-            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-            <span className="font-bold text-sm text-yellow-800">Supporter badge unlocked!</span>
-          </div>
-          <Button onClick={() => navigate("/")} className="rounded-full px-10 h-12 font-heading font-bold text-base shadow-lg shadow-primary/20">
-            Back to City Vibes
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // Returning from Stripe: the payment is confirmed with the server before any thank-you is shown.
+  const sessionId = new URLSearchParams(window.location.search).get("session_id");
+  if (sessionId) return <DonationResult sessionId={sessionId} />;
 
   return (
     <div className="min-h-screen bg-background pb-8">
