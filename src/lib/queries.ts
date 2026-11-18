@@ -510,7 +510,11 @@ export const reportEvent = createServerFn({ method: "POST" })
   });
 
 export const grokDiscover = createServerFn({ method: "POST" })
-  .validator((input: { cityId: number }) => input)
+  .validator((input: { cityId: number }) => {
+    const cityId = Number(input?.cityId);
+    if (!Number.isInteger(cityId) || cityId <= 0) throw new Error("Pick a city.");
+    return { cityId };
+  })
   .handler(async ({ data }) => {
     const apiKey = process.env.XAI_API_KEY;
     if (!apiKey) return { ok: false as const, error: "Grok is not available here yet." };
@@ -543,6 +547,30 @@ export const grokDiscover = createServerFn({ method: "POST" })
       `
     )[0];
     if (!city) return { ok: false as const, error: "City not found." };
+
+    // Paid call: limit each visitor, cap the whole app per day, and claim the city's
+    // 12-hour slot before calling so parallel requests cannot all get through.
+    const { takeDailyQuota, takeVisitorQuota, visitor } = await import("./hosting.server");
+    const who = await visitor(sql);
+    if (
+      !(await takeVisitorQuota(sql, who, "grok", { device: 2, network: 4 })) ||
+      !(await takeDailyQuota(sql, "grok|all", 20))
+    ) {
+      return { ok: false as const, error: "Grok has done enough for today. Try again tomorrow." };
+    }
+    const claimed = (await sql`
+      insert into sync_state (key, value_int, updated_at)
+      values (${"grok_" + city.id}, 0, now())
+      on conflict (key) do update set updated_at = now()
+        where sync_state.updated_at < now() - interval '12 hours'
+      returning key
+    `) as { key: string }[];
+    if (!claimed[0]) {
+      return {
+        ok: false as const,
+        error: "Already asked Grok for this city today. Live sources are still updating.",
+      };
+    }
 
     const existing = await sql<{ title: string }>`
       select title from events
