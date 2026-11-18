@@ -22,7 +22,20 @@
         "completed",
         "cancelled"
       ],
+      "enumColors": [
+        "yellow",
+        "green",
+        "gray"
+      ],
       "default": "pending"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "The signed-in donor. Set by the server when checkout starts."
+    },
+    "stripe_session_id": {
+      "type": "string",
+      "description": "Stripe checkout session this donation was started with."
     },
     "description": {
       "type": "string",
@@ -35,16 +48,31 @@
   ],
   "rls": {
     "create": {
-      "created_by_id": "{{user.id}}"
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "read": {
-      "created_by_id": "{{user.id}}"
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "update": {
-      "created_by_id": "{{user.id}}"
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
-      "created_by_id": "{{user.id}}"
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }
